@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Fila de campo del cliente. Dos modos:
+      · DISPLAY (visible por defecto) — ícono + etiqueta + valor, tappable.
+      · EDIT    (oculto por defecto)  — EditText, se aplica al teclear.
+
+    Sistema blanco + oro Koaj. Antes esta fila era el último reducto del
+    azul corporativo en la pantalla del cliente: marco de icono azul
+    pálido, etiqueta azul en modo edición y campo con borde azul medio.
+    Ahora usa exactamente el mismo registro que el espejo del vendedor
+    (`VendorFieldLabel` / `VendorFieldInput`): etiqueta gold en mayúsculas
+    con tracking alto, valor en tinta.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <!-- MODO DISPLAY -->
+    <LinearLayout
+        android:id="@+id/field_display_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_row_ripple"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp"
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <FrameLayout
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="14dp"
+            android:background="@drawable/bg_koaj_field_icon">
+
+            <ImageView
+                android:id="@+id/field_icon"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                tools:src="@drawable/ic_email" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!--
+                Etiqueta: mismo registro que `VendorFieldLabel`. El tracking
+                de 0.22 en mayúsculas es lo que la separa del valor sin
+                necesitar más tamaño ni más peso.
+            -->
+            <TextView
+                android:id="@+id/field_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="3dp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.22"
+                android:textAllCaps="true"
+                android:textColor="@color/accent_secondary"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="CORREO" />
+
+            <TextView
+                android:id="@+id/field_value"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/text_primary"
+                android:textSize="17sp"
+                tools:text="juan.perez@empresa.com" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!--
+        MODO EDIT
+        Sin botón de confirmar: lo que se escribe se aplica al instante.
+        El campo sale del modo edición al perder el foco (tocar otra fila,
+        cerrar el teclado o pulsar Listo), no por pulsar un ✓.
+    -->
+    <LinearLayout
+        android:id="@+id/field_edit_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/field_edit_label"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.22"
+            android:textAllCaps="true"
+            android:textColor="@color/accent_secondary"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            tools:text="CORREO" />
+
+        <EditText
+            android:id="@+id/field_input"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_koaj_edit_field"
+            android:fontFamily="sans-serif-medium"
+            android:imeOptions="actionDone"
+            android:maxLines="1"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_muted"
+            android:textSize="17sp"
+            tools:ignore="LabelFor" />
+
+        <!-- Contador de caracteres. Sólo aparece al acercarse al límite,
+             para no ensuciar la pantalla del cliente. -->
+        <TextView
+            android:id="@+id/field_counter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:gravity="end"
+            android:textColor="@color/text_secondary"
+            android:textSize="11sp"
+            android:visibility="invisible"
+            tools:text="55/60"
+            tools:visibility="visible" />
+    </LinearLayout>
+</LinearLayout>

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Medidas de la pantalla de Koaj Lovers.
+
+    Compactadas para que TODO el contenido quepa sin scroll en una pantalla
+    de cliente de 10" (1280x800 px @ 213 dpi = 961x601 dp lógicos, ~529 dp de
+    alto útil descontando status/nav bar).
+
+    Cálculo del vertical en el peor caso (sin descuentos):
+      header KOAJ ...................... ~32 dp
+      hero (modelos + título) .......... 150 dp (fijo)
+      pad top sección cream ............  10 dp
+      "¿Qué obtienes?" + divisor ...... ~32 dp
+      4 perks (icono + título + body) .. ~62 dp
+      headline + sub + margen ......... ~40 dp
+      botón ¡ACEPTO! ................... ~52 dp
+      botón NO ACEPTO ..................  34 dp
+      hint candado + countdown ........ ~22 dp
+      pad bottom sección cream .........   8 dp
+                                         ───────
+                                         ~492 dp (cabe en 529)
+
+    Cualquier ajuste fino se hace acá sin tocar el layout.
+-->
+<resources>
+
+    <!-- Cabecera con el wordmark KOAJ -->
+    <dimen name="koaj_header_text">24sp</dimen>
+    <dimen name="koaj_header_pad_v">8dp</dimen>
+
+    <!-- Hero: texto a la izquierda, modelos a la derecha -->
+    <dimen name="koaj_hero_height">170dp</dimen>
+    <dimen name="koaj_hero_pad_start">20dp</dimen>
+    <dimen name="koaj_hero_pad_bottom">12dp</dimen>
+    <dimen name="koaj_eyebrow_text">12sp</dimen>
+    <dimen name="koaj_title_text">40sp</dimen>
+    <dimen name="koaj_title_heart">24dp</dimen>
+    <dimen name="koaj_rule_width">44dp</dimen>
+    <dimen name="koaj_tagline_text">15sp</dimen>
+    <dimen name="koaj_subtitle_text">12sp</dimen>
+
+    <!-- Bloque crema -->
+    <dimen name="koaj_section_pad_h">20dp</dimen>
+    <dimen name="koaj_section_pad_top">12dp</dimen>
+    <dimen name="koaj_section_pad_bottom">10dp</dimen>
+    <dimen name="koaj_perks_title_text">15sp</dimen>
+    <dimen name="koaj_divider_heart">14dp</dimen>
+
+    <!-- Tarjetas de beneficio -->
+    <dimen name="koaj_perk_card_pad_h">10dp</dimen>
+    <dimen name="koaj_perk_card_pad_top">12dp</dimen>
+    <dimen name="koaj_perk_card_pad_bottom">10dp</dimen>
+    <dimen name="koaj_perk_card_gap">8dp</dimen>
+    <dimen name="koaj_perk_icon_frame">36dp</dimen>
+    <dimen name="koaj_perk_icon">18dp</dimen>
+    <dimen name="koaj_perk_title_text">12sp</dimen>
+    <dimen name="koaj_perk_body_text">10sp</dimen>
+
+    <!-- Llamada a la acción -->
+    <dimen name="koaj_cta_headline_text">14sp</dimen>
+    <dimen name="koaj_cta_sub_text">12sp</dimen>
+    <dimen name="koaj_accept_text">22sp</dimen>
+    <dimen name="koaj_accept_sub_text">12sp</dimen>
+    <dimen name="koaj_accept_pad_v">14dp</dimen>
+    <dimen name="koaj_accept_heart">18dp</dimen>
+    <dimen name="koaj_skip_height">34dp</dimen>
+    <dimen name="koaj_skip_text">12sp</dimen>
+    <dimen name="koaj_hint_text">10sp</dimen>
+    <dimen name="koaj_hint_icon">11dp</dimen>
+    <dimen name="koaj_countdown_text">11sp</dimen>
+
+    <!--
+        Pod notification centrado en pantalla del vendor (Koaj Lovers) ·
+        versión XL "salto premium".
+
+        El card pasó de 460dp a 560dp de ancho: en pantallas POS de 7"/10"
+        queda como un modal que ocupa el centro pero no tapa las esquinas,
+        y la jerarquía interna (eyebrow → corazón → título → subtítulo →
+        chip → botón) respira sin amontonarse.
+
+        El corazón pasó de 88dp a 120dp (un 36% más grande) y los anillos
+        pulsantes pasaron de 120dp a 168dp. Eso le da al ojo un "centro"
+        claro al que mirar mientras pulsa — el efecto "latido" es más
+        evidente cuanto más grande es el subject.
+    -->
+    <dimen name="pod_card_width">560dp</dimen>
+    <dimen name="pod_card_padding_h">36dp</dimen>
+    <dimen name="pod_card_padding_v">36dp</dimen>
+    <dimen name="pod_card_radius">32dp</dimen>
+
+    <dimen name="pod_eyebrow_text">12sp</dimen>
+    <dimen name="pod_title_text">26sp</dimen>
+    <dimen name="pod_subtitle_text">15sp</dimen>
+    <dimen name="pod_hint_text">11sp</dimen>
+    <dimen name="pod_lock_text">10sp</dimen>
+
+    <dimen name="pod_heart_size">120dp</dimen>
+    <dimen name="pod_heart_inner">44dp</dimen>
+    <dimen name="pod_glow_size">220dp</dimen>
+    <dimen name="pod_ring_size">168dp</dimen>
+
+    <!-- Botón Continuar del pod. XL con sombra fuerte para que se lea como CTA principal -->
+    <dimen name="pod_btn_height">62dp</dimen>
+    <dimen name="pod_btn_text">17sp</dimen>
+
+    <!--
+        Overlay de "flow completado" · cliente extraído / confirmado.
+
+        El check XL de 120dp es el centro visual; el círculo que se dibuja
+        a su alrededor es de 140dp para dejar margen al trazo. Los textos
+        son más grandes que el pod porque acá hay menos contenido y más
+        espacio para "celebrar" el cierre.
+    -->
+    <dimen name="done_card_width">560dp</dimen>
+    <dimen name="done_card_padding_v">44dp</dimen>
+    <dimen name="done_eyebrow_text">12sp</dimen>
+    <dimen name="done_title_text">28sp</dimen>
+    <dimen name="done_subtitle_text">15sp</dimen>
+    <dimen name="done_check_size">120dp</dimen>
+    <dimen name="done_ring_size">140dp</dimen>
+
+    <!-- Ficha del modulo: en la pantalla del cajero (1280dp de ancho) el
+         card a todo lo ancho deja una linea de texto larguisima. El padding
+         grande en sw720dp lo acota a una medida legible. -->
+    <dimen name="module_info_pad_h">32dp</dimen>
+</resources>

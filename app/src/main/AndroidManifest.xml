@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+        INTERNET: necesario para consultar la API de The Factory HKA
+        (validación de datos del cliente contra la DIAN).
+        PermodaView no realiza más llamadas de red que esa.
+    -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Permite verificar conectividad antes de llamar a HKA. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <queries>
+        <!--
+            HioPosCloud: la app del POS que invoca nuestra API.
+            El paquete real en las terminales es `icg.android.start`
+            (verificado en el POS C9H, y confirmado en el handshake real:
+            `caller=icg.android.start`); `com.icg.hiopos` se deja por si alguna
+            distribución de ICG lo usa.
+        -->
+        <package android:name="icg.android.start" />
+        <package android:name="com.icg.hiopos" />
+    </queries>
+
+    <application
+        android:name=".PermodaViewApp"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules"
+        android:fullBackupContent="@xml/backup_rules"
+        android:icon="@drawable/ic_koaj_person"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.PermodaView.Display"
+        tools:targetApi="31">
+
+        <!-- ==================================================================== -->
+        <!-- Ícono del launcher: la FICHA DEL MÓDULO, no el driver de QA.          -->
+        <!--                                                                      -->
+        <!-- Antes el ícono abría `TestDriverActivity`. En una terminal en          -->
+        <!-- producción eso dejaba que cualquiera disparara un ciclo completo sin   -->
+        <!-- venta detrás: el formulario aparecía en la pantalla del cliente y se   -->
+        <!-- podía confirmar. El driver es la herramienta correcta para QA y la     -->
+        <!-- equivocada para el cajón de aplicaciones de una caja.                  -->
+        <!--                                                                      -->
+        <!-- Se eligió mostrar una ficha en vez de quitar el ícono: un ícono que    -->
+        <!-- no hace nada invita a volver a tocarlo, y el toque accidental es la    -->
+        <!-- única ocasión en que alguien de tienda va a tener en pantalla la       -->
+        <!-- versión, el `apk_name` y el paquete — los tres datos que soporte pide. -->
+        <!-- ==================================================================== -->
+        <activity
+            android:name=".entry.ModuleInfoActivity"
+            android:exported="true"
+            android:label="@string/app_name"
+            android:theme="@style/Theme.PermodaView.Driver">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- ==================================================================== -->
+        <!-- Driver de QA: simula el ciclo de HioPosCloud sin el POS real.         -->
+        <!--                                                                      -->
+        <!-- ⚠️ `exported="false"` a propósito. Ya no tiene filtro de launcher y    -->
+        <!-- sólo se abre desde el botón que `ModuleInfoActivity` muestra **en      -->
+        <!-- debug**. Al lanzarse desde la propia app no hace falta exportarla, y   -->
+        <!-- así ninguna otra aplicación del dispositivo puede invocarla — con      -->
+        <!-- `exported="true"` y MAIN/LAUNCHER cualquiera podía.                    -->
+        <!-- ==================================================================== -->
+        <activity
+            android:name=".entry.TestDriverActivity"
+            android:exported="false"
+            android:label="PermodaView"
+            android:theme="@style/Theme.PermodaView.Driver" />
+
+        <!-- ==================================================================== -->
+        <!-- API expuesta a HioPosCloud (Document API)                             -->
+        <!--                                                                      -->
+        <!-- Namespace: icg.actions.document.${icgApkName}.*                       -->
+        <!--                                                                      -->
+        <!-- El `<apk_name>` NO lo elegimos nosotros: lo define ICG en             -->
+        <!-- CloudLicense (contrato HPCL.025, pág. 7). Se interpola desde          -->
+        <!-- app/build.gradle.kts para que manifest y ApiActions no puedan         -->
+        <!-- divergir; ver el comentario de `icgApkName` allá.                     -->
+        <!--                                                                      -->
+        <!-- ✅ HU-HIOPOS · Confirmado en la terminal: el apk_name es              -->
+        <!-- `custvalidation` (el nombre del archivo APK subido a CloudLicense),   -->
+        <!-- NO `PermodaView`. HioPosCloud invocó                                  -->
+        <!-- `icg.actions.document.custvalidation.*` con caller=icg.android.start. -->
+        <!--                                                                      -->
+        <!-- Estructura calcada del manifest de referencia que ICG entregó (su     -->
+        <!-- módulo `coldemo`):                                                    -->
+        <!--   · UN solo <action> por <intent-filter>.                             -->
+        <!--   · UNA activity por acción del contrato.                             -->
+        <!--   · `category.DEFAULT` en todas.                                      -->
+        <!--   · Incluye SHOW_SETUP_SCREEN y MODIFY_DOCUMENT, que nos faltaban.    -->
+        <!--                                                                      -->
+        <!-- ⚠️ Si algún día el módulo "deja de activarse", el primer sospechoso   -->
+        <!-- vuelve a ser este nombre. HioPosCloud ATRAPA el fallo de resolución y -->
+        <!-- lo convierte en "el módulo no está instalado": ofrece instalarlo en   -->
+        <!-- cada arranque y el logcat queda limpio, sin                           -->
+        <!-- ActivityNotFoundException. Diagnóstico: inspeccionar las acciones del manifiesto compilado.     -->
+        <!-- ==================================================================== -->
+
+        <activity
+            android:name=".entry.InitializeActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PermodaView.Invisible">
+            <intent-filter>
+                <action android:name="icg.actions.document.${icgApkName}.INITIALIZE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".entry.SetupScreenActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PermodaView.Invisible">
+            <intent-filter>
+                <action android:name="icg.actions.document.${icgApkName}.SHOW_SETUP_SCREEN" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".entry.GetBehaviourActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PermodaView.Invisible">
+            <intent-filter>
+                <action android:name="icg.actions.document.${icgApkName}.GET_BEHAVIOR" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".entry.GetVersionActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PermodaView.Invisible">
+            <intent-filter>
+                <action android:name="icg.actions.document.${icgApkName}.GET_VERSION" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".entry.FinalizeActivity"
+            android:exported="true"
+            android:theme="@style/Theme.PermodaView.Invisible">
+            <intent-filter>
+                <action android:name="icg.actions.document.${icgApkName}.FINALIZE" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- La UI propia solo se abre al crear/editar. Consulta y selección nativas. -->
+        <activity android:name=".entry.ManageCustomerActivity"
+            android:exported="true" android:theme="@style/Theme.PermodaView.Vendor">
+            <intent-filter>
+                <action android:name="icg.actions.document.${icgApkName}.MANAGE_CUSTOMER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <!-- Handlers inertes para instalaciones que conserven un behaviour anterior. -->
+        <activity android:name=".entry.CustomerSelectionActivity"
+            android:exported="true" android:theme="@style/Theme.PermodaView.Invisible">
+            <intent-filter>
+                <action android:name="icg.actions.document.${icgApkName}.SELECT_CUSTOMER" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="icg.actions.document.${icgApkName}.MODIFY_DOCUMENT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <!-- Provider privado conservado para compatibilidad histórica.
+             MANAGE_CUSTOMER devuelve CustomerResult directamente y no escribe aquí. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/provider_paths" />
+        </provider>
+
+    </application>
+</manifest>

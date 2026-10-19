@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mantente informado: sobre cerrado.
+     Se define aparte de ic_email.xml porque ese lleva el tinte azul del flujo
+     de facturación y aquí el color lo manda la paleta KOAJ. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/koaj_ink">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M4,5h16a2,2 0 0 1 2,2v10a2,2 0 0 1 -2,2H4a2,2 0 0 1 -2,-2V7a2,2 0 0 1 2,-2zM4,7v0.2l8,5 8,-5V7zM20,9.55l-7.47,4.67a1,1 0 0 1 -1.06,0L4,9.55V17h16z" />
+</vector>

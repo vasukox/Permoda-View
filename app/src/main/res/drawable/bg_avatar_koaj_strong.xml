@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Avatar circle premium para el header del driver de QA.
+
+    Antes era `brand_blue_strong` (azul intenso #FF2563EB) y se confundía con
+    morado en algunas pantallas. 14-08-2026: migrado al sistema Koaj —
+    tinta sólida (#1C1B19) con hairline gold. Mismo registro que
+    `bg_koaj_avatar_dark` en el vendor, así el sistema visual es coherente
+    en todas las activities de la app.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/text_primary" />
+    <stroke android:width="1.2dp" android:color="@color/accent_secondary" />
+</shape>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Backdrop del pod notification.
+
+    Capa semitransparente que oscurece la pantalla del vendor mientras el pod
+    está visible. Lleva un sutil gradiente vertical para que el card flotante
+    tenga "profundidad" — no es un dim plano, sino una caída de negro más
+    fuerte arriba y abajo y más suave al centro, simulando viñeta.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:angle="270"
+        android:startColor="#E60B0B0B"
+        android:centerColor="#CC0B0B0B"
+        android:endColor="#F20B0B0B"
+        android:type="linear" />
+</shape>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Header premium de la pantalla del vendor.
+
+    Antes era un gradiente azul corporativo (`bg_blue_gradient`). Ahora es
+    blanco con una franja inferior dorada — el mismo principio del wordmark
+    de Koaj en la pantalla del cliente (negro + acento gold arriba a la
+    derecha): la marca KOAJ se lee en cualquier color de fondo.
+
+    La franja dorada de 3dp es deliberada: no compite con el contenido, no
+    se ve como decoración, pero basta para que el ojo identifique "esto es
+    Koaj" sin tener que leer el eyebrow.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/bg_surface" />
+        </shape>
+    </item>
+    <item android:gravity="bottom">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/accent_secondary" />
+            <size android:height="3dp" />
+        </shape>
+    </item>
+</layer-list>

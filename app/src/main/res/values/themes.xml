@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+        HUCOLRES · Base común de los cuatro temas de la app.
+
+        ⚠️ `viewInflaterClass` es la línea importante de este archivo.
+
+        Los temas `Theme.MaterialComponents.*` traen
+        `viewInflaterClass = MaterialComponentsViewInflater`. Ese inflater
+        SUSTITUYE cada `<Button>` del XML por un `MaterialButton` en tiempo
+        de inflado, y `MaterialButton` DESCARTA `android:background` (lo
+        avisa en logcat: "MaterialButton does not support android:background").
+        Pinta con `backgroundTint`, que por defecto es `?attr/colorPrimary`
+        — y el default de la librería es #6200EE, el morado de Material.
+
+        Resultado: los botones del vendedor salían morados aunque el layout
+        declarara `bg_koaj_btn_gold`. La pantalla del cliente se salvaba por
+        accidente: es una `Presentation` (un Dialog), no una
+        `AppCompatActivity`, así que ahí no hay factory de AppCompat y no
+        hay sustitución. Mismo XML, mismo tema, resultado distinto.
+
+        Volviendo al inflater de AppCompat, `<Button>` se infla como
+        `AppCompatButton`, que sí respeta `android:background`: los botones
+        recuperan el gradiente, el borde de 2dp, la sombra y los estados.
+        Es seguro porque el proyecto no usa ningún widget
+        `com.google.android.material.*` en los layouts.
+
+        Los `color*` de abajo son la red de seguridad: si algún día entra un
+        widget que se tiña con `colorPrimary`, que salga gold y no morado.
+        Y los `colorControl*` fuerzan el gold en cursor, selección y handle
+        de los EditText, donde Android mete su azul de sistema.
+    -->
+    <style name="Theme.PermodaView" parent="Theme.MaterialComponents.Light.NoActionBar">
+        <item name="viewInflaterClass">androidx.appcompat.app.AppCompatViewInflater</item>
+        <item name="colorPrimary">@color/accent_secondary</item>
+        <item name="colorPrimaryVariant">@color/accent_secondary_soft</item>
+        <item name="colorOnPrimary">@color/text_on_primary</item>
+        <item name="colorSecondary">@color/accent_secondary</item>
+        <item name="colorSecondaryVariant">@color/accent_secondary_soft</item>
+        <item name="colorOnSecondary">@color/text_on_primary</item>
+        <item name="colorAccent">@color/focus_accent</item>
+        <item name="colorControlActivated">@color/focus_accent</item>
+        <item name="colorControlHighlight">@color/focus_accent_tint</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorHint">@color/text_muted</item>
+        <item name="android:textCursorDrawable">@drawable/bg_koaj_cursor</item>
+        <item name="android:textSelectHandle">@drawable/bg_koaj_select_handle</item>
+        <item name="android:textSelectHandleLeft">@drawable/bg_koaj_select_handle</item>
+        <item name="android:textSelectHandleRight">@drawable/bg_koaj_select_handle</item>
+    </style>
+
+    <!--
+        Tema de la pantalla secundaria del CLIENTE (10"/11"): fullscreen y
+        fondo cream Koaj.
+
+        El `windowBackground` importa más de lo que parece: es lo que se ve
+        durante el frame en que la Presentation se infla, antes de que el
+        layout pinte. Con el blanco frío anterior (#F8FAFC) había un
+        parpadeo azulado al abrir. Con cream el arranque es invisible.
+
+        El gold de los controles y el inflater de AppCompat vienen de
+        `Theme.PermodaView`; aquí sólo queda lo propio de la ventana.
+    -->
+    <style name="Theme.PermodaView.Display" parent="Theme.PermodaView">
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/bg_app</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/bg_app</item>
+        <item name="android:navigationBarColor" tools:targetApi="l">@color/bg_app</item>
+    </style>
+
+    <!--
+        Activities de la API: INITIALIZE, GET_VERSION, GET_BEHAVIOR,
+        SELECT_CUSTOMER (compatibilidad) y FINALIZE.
+
+        NINGUNA llama a setContentView: su trabajo es responder al POS y, responder sin abrir el formulario de clientes. Por eso tiene que ser REALMENTE invisible.
+
+        Antes usaba `windowBackground = screen_bg` (#FFF8FAFC) +
+        windowFullscreen, así que pintaba una ventana blanca opaca sobre
+        HioPosCloud durante todo el flujo — se veía como "pantalla del
+        vendedor en blanco" mientras el cliente completaba sus datos.
+
+        ⚠️ NO usar este tema en activities con UI propia. Es exclusivo de las
+        activities sin contenido; `TestDriverActivity` lo usaba y al volverlo
+        transparente su layout (cuyo root no tiene background) dejaba ver el
+        launcher detrás. Para eso está Theme.PermodaView.Driver.
+
+        Sin `windowFullscreen` a propósito: no queremos ocultar la status bar
+        del POS y provocar un salto visual al abrir y cerrar.
+    -->
+    <style name="Theme.PermodaView.Invisible" parent="Theme.PermodaView">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:backgroundDimEnabled">false</item>
+        <item name="android:windowAnimationStyle">@null</item>
+    </style>
+
+    <!--
+        Driver de QA (TestDriverActivity). Tiene UI propia y a pantalla
+        completa, así que necesita fondo OPACO.
+    -->
+    <style name="Theme.PermodaView.Driver" parent="Theme.PermodaView">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowFullscreen">true</item>
+        <item name="android:windowBackground">@color/bg_app</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/text_primary</item>
+        <item name="android:navigationBarColor" tools:targetApi="l">@color/bg_app</item>
+    </style>
+
+    <!--
+        Pantalla del VENDEDOR durante MANAGE_CUSTOMER. Opaca: ahora tiene UI
+        propia (estado + espejo editable). Antes usaba el tema invisible y el
+        cajero veía HioPosCloud congelado sin ningún mensaje.
+
+        Antes heredaba el colorAccent azul de MaterialComponents (el azul
+        corporativo del POS) y eso se filtraba a EditText como cursor,
+        selección y handle. Eso rompía la paleta Koaj — el gold es de marca.
+        `Theme.PermodaView` ya sobreescribe colorAccent y sus derivados para
+        que TODO el focus state del teclado sea gold.
+
+        HUCOLRES: esta es la ÚNICA pantalla que sufría el morado de Material,
+        porque es la única con UI propia dentro de una `AppCompatActivity`
+        ([ManageCustomerActivity]). El porqué está en `Theme.PermodaView`.
+    -->
+    <style name="Theme.PermodaView.Vendor" parent="Theme.PermodaView">
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:windowBackground">@color/bg_app</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/text_primary</item>
+        <item name="android:navigationBarColor" tools:targetApi="l">@color/bg_app</item>
+    </style>
+
+    <!-- Etiqueta y campo del espejo del vendedor -->
+    <style name="VendorFieldLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:letterSpacing">0.22</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/accent_secondary</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <!--
+        Campo del cajero. `minHeight` de 56dp y padding vertical generoso porque
+        antes había que acertarle a la línea de texto para que saliera el
+        teclado: el EditText medía sólo lo que el texto, y en una pantalla
+        táctil de POS eso es un blanco imposible.
+    -->
+    <style name="VendorFieldInput">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">56dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+        <item name="android:layout_marginTop">2dp</item>
+        <item name="android:background">@null</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:hint">@string/consent_empty_placeholder</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textColorHint">@color/text_muted</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <!-- Hairline divisor entre filas de la tarjeta de datos -->
+    <!-- ================================================================= -->
+    <!-- Tarjetas de beneficio de Koaj Lovers.                              -->
+    <!--                                                                   -->
+    <!-- Se extraen a estilos porque son cuatro tarjetas idénticas salvo el -->
+    <!-- icono y el texto: repetir 12 atributos por tarjeta en el layout    -->
+    <!-- haría que un ajuste de diseño se tuviera que aplicar cuatro veces  -->
+    <!-- y garantiza que una se quede distinta.                            -->
+    <!-- ================================================================= -->
+    <style name="KoajPerkCard">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/bg_koaj_card</item>
+        <item name="android:gravity">center_horizontal</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:paddingHorizontal">@dimen/koaj_perk_card_pad_h</item>
+        <item name="android:paddingTop">@dimen/koaj_perk_card_pad_top</item>
+        <item name="android:paddingBottom">@dimen/koaj_perk_card_pad_bottom</item>
+    </style>
+
+    <style name="KoajPerkIconFrame">
+        <item name="android:layout_width">@dimen/koaj_perk_icon_frame</item>
+        <item name="android:layout_height">@dimen/koaj_perk_icon_frame</item>
+        <item name="android:layout_marginBottom">10dp</item>
+        <item name="android:background">@drawable/bg_koaj_icon_circle</item>
+    </style>
+
+    <style name="KoajPerkIcon">
+        <item name="android:layout_width">@dimen/koaj_perk_icon</item>
+        <item name="android:layout_height">@dimen/koaj_perk_icon</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
+
+    <style name="KoajPerkTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:gravity">center</item>
+        <item name="android:lineSpacingExtra">1dp</item>
+        <item name="android:textColor">@color/koaj_ink</item>
+        <item name="android:textSize">@dimen/koaj_perk_title_text</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="KoajPerkBody">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:gravity">center</item>
+        <item name="android:lineSpacingExtra">1dp</item>
+        <item name="android:textColor">@color/koaj_ink_soft</item>
+        <item name="android:textSize">@dimen/koaj_perk_body_text</item>
+    </style>
+
+    <style name="Hairline">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginTop">12dp</item>
+        <item name="android:layout_marginBottom">12dp</item>
+        <item name="android:background">@color/border_hairline</item>
+    </style>
+
+</resources>

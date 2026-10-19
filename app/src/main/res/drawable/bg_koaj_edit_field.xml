@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Campo de texto del cliente en modo edición.
+
+    Sustituye a `bg_edit_field_blue`. Blanco sobre el card blanco, con
+    borde gold de 1.5dp: en un card que ya es blanco, lo que marca "esto
+    está abierto para escribir" es el borde, no el relleno. Por eso el
+    borde es más grueso que el hairline de 1dp de los separadores.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/bg_surface" />
+    <stroke
+        android:width="1.5dp"
+        android:color="@color/accent_secondary_soft" />
+    <corners android:radius="12dp" />
+</shape>

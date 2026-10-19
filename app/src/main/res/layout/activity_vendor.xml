@@ -1,0 +1,833 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pantalla del VENDEDOR durante SELECT_CUSTOMER (display principal).
+
+    Sistema navy enterprise (19-ago-2026).
+
+    Fondo gris frío, tarjetas blancas con hairline azul, CTA primario navy
+    sólido con filo acero y texto blanco. Los tokens son de ROL
+    (`bg_app`, `accent_primary`, `text_primary`…), no de color: ver el
+    encabezado de `colors.xml`.
+
+    Reemplazó al sistema oro/cream, que medía 2.2:1 entre el CTA y el fondo
+    y 2.4:1 en las etiquetas de los campos. La regla que quedó: **el relleno
+    del primario va oscuro**, porque lo que hay que maximizar es la
+    separación botón/fondo, no sólo el contraste del texto.
+
+    El oro sobrevive en un solo sitio de esta pantalla: el pod de Koaj
+    Lovers (`view_vendor_loading_overlay`), que espeja el momento de marca
+    que el cliente ve en su pantalla. Su botón Continuar sí cambió — va
+    blanco con texto navy, porque sobre fondo oscuro la regla se invierte.
+
+    Cada vista tiene un id estable: VendorScreen.kt los usa para
+    animaciones de entrada escalonada (stagger fade + slide).
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/vendor_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_app">
+
+    <!--
+        Contenedor de cabecera + formulario + pie.
+
+        Tiene id porque `VendorScreen` le aplica el alto del teclado como
+        `paddingBottom`: al ser el ScrollView del medio el único hijo con
+        `layout_weight`, absorbe el encogimiento y el pie sube por encima del
+        teclado. Es el efecto de `adjustResize`, replicado a mano porque
+        `FLAG_LAYOUT_NO_LIMITS` lo desactiva.
+
+        El padding va acá y NO en `vendor_root` a propósito: los overlays (pod de
+        Koaj, "flow completado", botón de cerrar teclado) son hermanos en el
+        FrameLayout y tienen que seguir cubriendo la pantalla completa.
+    -->
+    <LinearLayout
+        android:id="@+id/vendor_content"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+
+        <!-- ── Cabecera de estado ───────────────────────────────────── -->
+        <LinearLayout
+            android:id="@+id/vendor_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_koaj_header"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="28dp"
+            android:paddingVertical="22dp">
+
+            <FrameLayout
+                android:id="@+id/vendor_header_icon_frame"
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:layout_marginEnd="18dp">
+
+                <!--
+                    Glow gold detrás del avatar (pulsa en LOYALTY). Va
+                    primero porque `startHeaderGlowPulse` lo busca con
+                    `getChildAt(0)`.
+                -->
+                <View
+                    android:id="@+id/vendor_header_glow"
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    android:layout_gravity="center"
+                    android:alpha="0"
+                    android:background="@drawable/bg_pod_glow" />
+
+                <!--
+                    Avatar dark Koaj: círculo tinta con hairline gold.
+                    Da contraste 18:1 con cualquier icono blanco encima
+                    (AAA) y se lee como "marca Koaj" — el mismo registro
+                    que el corazón del pod, constante.
+                -->
+                <View
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/bg_koaj_avatar_dark" />
+
+                <!--
+                    ⚠️ El `tint` blanco NO es decorativo: sin él este círculo se ve
+                    como un disco negro.
+
+                    `VendorScreen.applyStage` rota cuatro íconos según la etapa
+                    (persona / tienda / corazón / check) y tres de ellos se
+                    rellenan con `text_primary` — el MISMO color que el fondo del
+                    círculo (`bg_koaj_avatar_dark`). Ícono oscuro sobre círculo
+                    oscuro: invisible. El comentario de ese drawable asume "icono
+                    blanco encima, 18:1 de contraste", que era cierto cuando el
+                    único ícono era `ic_heart_white`; al ampliarse el set nadie
+                    revisó los rellenos.
+
+                    Se tiñe acá y no en cada vector porque los vectores se usan
+                    también sobre fondo claro (la ficha del módulo, por ejemplo),
+                    donde tienen que seguir siendo oscuros.
+
+                    El `src` es sólo el valor inicial: lo reemplaza `applyStage`.
+                -->
+                <ImageView
+                    android:id="@+id/vendor_icon"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/vendor_title_filling"
+                    android:src="@drawable/ic_koaj_person"
+                    android:tint="@color/text_on_primary"
+                    tools:ignore="UseAppTint" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:id="@+id/vendor_header_text"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <!--
+                    Eyebrow "KOAJ · POS" en gold_strong con tracking alto.
+                    Mismo registro que el wordmark del cliente: el ojo
+                    identifica la marca sin tener que leerla.
+                -->
+                <TextView
+                    android:id="@+id/vendor_eyebrow"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.34"
+                    android:text="@string/vendor_eyebrow"
+                    android:textAllCaps="true"
+                    android:textColor="@color/accent_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/vendor_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/text_primary"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    tools:text="El cliente está completando sus datos" />
+
+                <TextView
+                    android:id="@+id/vendor_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="3dp"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp"
+                    tools:text="Puedes corregir los datos desde aquí · se sincroniza en vivo" />
+
+                <!--
+                    Spinner indeterminado: aparece SOLO cuando el cliente está en
+                    la pantalla de Koaj Lovers (LOYALTY), indicando al cajero que
+                    el proceso está en manos del cliente. Tinte gold para
+                    coherencia con la paleta del header.
+                -->
+                <ProgressBar
+                    android:id="@+id/vendor_progress"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:indeterminate="true"
+                    android:indeterminateTint="@color/accent_secondary"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/vendor_scenario_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_koaj_badge"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.18"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="8dp"
+                android:textColor="@color/text_primary"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="NUEVO · DIAN" />
+        </LinearLayout>
+
+        <!-- ── Aviso (DIAN caída, documento no registrado, etc.) ─────── -->
+        <TextView
+            android:id="@+id/vendor_warning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_koaj_warning"
+            android:fontFamily="sans-serif-medium"
+            android:paddingHorizontal="28dp"
+            android:paddingVertical="12dp"
+            android:textColor="@color/text_primary"
+            android:textSize="13sp"
+            android:visibility="gone"
+            tools:text="No se pudo validar con la DIAN. Completa los datos manualmente."
+            tools:visibility="visible" />
+
+        <!-- ── Compuerta: decisión del vendedor ─────────────────────────
+             El flujo se detiene aquí. Mientras esté visible, el cliente ve
+             una pantalla de espera y no puede hacer nada.                -->
+        <LinearLayout
+            android:id="@+id/vendor_prompt"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="28dp"
+            android:layout_marginTop="22dp"
+            android:background="@drawable/bg_koaj_card_white"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:visibility="gone"
+            tools:visibility="visible">
+
+            <TextView
+                android:id="@+id/vendor_prompt_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                tools:text="Este cliente no está registrado. ¿Desea crearlo?" />
+
+            <TextView
+                android:id="@+id/vendor_prompt_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                tools:text="El cliente ingresará su documento en su pantalla." />
+
+            <Button
+                android:id="@+id/vendor_prompt_yes"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="22dp"
+                android:background="@drawable/bg_koaj_btn_primary_ink"
+                android:fontFamily="sans-serif-medium"
+                android:stateListAnimator="@null"
+                android:text="@string/vendor_prompt_yes_create"
+                android:textAllCaps="false"
+                android:textColor="@color/text_on_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- Solo en el recordatorio del botón "Nuevo cliente": cancela y vuelve al POS. -->
+            <Button
+                android:id="@+id/vendor_prompt_search"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_koaj_btn_outline_ink"
+                android:fontFamily="sans-serif-medium"
+                android:stateListAnimator="@null"
+                android:text="@string/vendor_prompt_search_back"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </LinearLayout>
+
+        <!-- ── Captura del documento (la hace el CAJERO) ─────────────── -->
+        <LinearLayout
+            android:id="@+id/vendor_doc_capture"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:paddingHorizontal="28dp"
+            android:paddingBottom="48dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="4dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/vendor_capture_title"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:text="@string/vendor_capture_subtitle"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_koaj_card_white"
+                android:orientation="vertical"
+                android:padding="18dp">
+
+                <TextView
+                    style="@style/VendorFieldLabel"
+                    android:text="@string/consent_label_doc_type" />
+
+                <EditText
+                    android:id="@+id/vendor_capture_doc_type"
+                    style="@style/VendorFieldInput"
+                    android:inputType="none"
+                    tools:ignore="LabelFor" />
+
+                <View style="@style/Hairline" />
+
+                <TextView
+                    style="@style/VendorFieldLabel"
+                    android:text="@string/consent_label_doc_id" />
+
+                <EditText
+                    android:id="@+id/vendor_capture_doc_id"
+                    style="@style/VendorFieldInput"
+                    android:hint="@string/consent_doc_id_hint"
+                    android:imeOptions="actionDone"
+                    android:inputType="number"
+                    android:maxLength="20"
+                    tools:ignore="LabelFor" />
+
+                <!--
+                    Elección Empleado / cliente normal.
+
+                    OCULTO por defecto: sólo se muestra cuando el POS trajo un
+                    cliente Empleado. Reemplazó al desplegable de tipo de cliente
+                    (6 opciones) que estaba acá — el cajero no clasifica al
+                    cliente: el tipo lo trae HioPos, o lo produce la decisión de
+                    Koaj Lovers. Ver CustomerTypeResolver.
+
+                    Hoy no se muestra nunca en producción porque el POS todavía no
+                    manda el tipo de cliente en el <Document>. Queda cableado para
+                    el día que ICG agregue el campo.
+                -->
+                <LinearLayout
+                    android:id="@+id/vendor_capture_employee_block"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <View style="@style/Hairline" />
+
+                    <TextView
+                        style="@style/VendorFieldLabel"
+                        android:text="@string/vendor_capture_employee_label" />
+
+                    <Button
+                        android:id="@+id/vendor_capture_employee_yes"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_koaj_btn_primary_ink"
+                        android:minHeight="48dp"
+                        android:text="@string/vendor_capture_employee_yes"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_on_primary"
+                        android:textSize="15sp" />
+
+                    <Button
+                        android:id="@+id/vendor_capture_employee_no"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:background="@drawable/bg_koaj_btn_outline_ink"
+                        android:minHeight="48dp"
+                        android:text="@string/vendor_capture_employee_no"
+                        android:textAllCaps="false"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/vendor_capture_error"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:fontFamily="sans-serif-medium"
+                android:textColor="@color/koaj_state_invalid"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="Ingresa al menos 4 dígitos"
+                tools:visibility="visible" />
+
+            <Button
+                android:id="@+id/vendor_capture_continue"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_koaj_btn_primary_ink"
+                android:fontFamily="sans-serif-medium"
+                android:stateListAnimator="@null"
+                android:text="@string/consent_continue"
+                android:textAllCaps="false"
+                android:textColor="@color/text_on_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!--
+                Consumidor Final, disponible desde el primer instante.
+                Estilo secundario a propósito: lo normal es facturar con datos,
+                y el botón gold de Continuar tiene que seguir siendo la acción
+                obvia. Pero está a un toque, sin escribir nada.
+                Antes era outline blue; ahora outline ink para máximo
+                contraste y coherencia Koaj (sin colores azules corporativos).
+            -->
+            <Button
+                android:id="@+id/vendor_capture_cf"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/bg_koaj_btn_outline_ink"
+                android:fontFamily="sans-serif-medium"
+                android:stateListAnimator="@null"
+                android:text="@string/vendor_capture_cf"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp" />
+        </LinearLayout>
+
+        <!-- ── Espejo editable ──────────────────────────────────────── -->
+        <ScrollView
+            android:id="@+id/vendor_mirror_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingHorizontal="28dp"
+                android:paddingTop="20dp"
+                android:paddingBottom="16dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.22"
+                    android:text="@string/vendor_mirror_label"
+                    android:textAllCaps="true"
+                    android:textColor="@color/accent_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="bold" />
+
+                <!--
+                    ── Dos columnas, a propósito ──────────────────────────────
+                    La pantalla del vendedor es horizontal: le sobra ancho y el
+                    alto es el recurso escaso. En una sola columna cada fila
+                    cuesta ~98dp (label 11sp + input minHeight 56dp + hairline
+                    con 12dp de margen a cada lado); con 5 campos más el bloque
+                    del tipo de cliente daba ~640dp, más que el alto útil de la
+                    pantalla, y con el teclado abierto quedaban visibles dos
+                    campos y medio.
+
+                    Partirlo en dos columnas lo baja a ~330dp: entra completo
+                    arriba del teclado y deja de hacer scroll, SIN tocar el
+                    minHeight de 56dp de los campos — que es el área de toque
+                    deliberada para un cajero de pie (ver el comentario de
+                    VendorFieldInput en themes.xml).
+
+                    ⚠️ Los ids de los 5 campos NO cambian: CustomerMirror los
+                    recibe por constructor y `mountPhoneCountryToolbox` opera
+                    sobre el padre del `phone`, que ahora es la columna derecha.
+                -->
+                <LinearLayout
+                    android:id="@+id/vendor_mirror_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_koaj_card_white"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal"
+                    android:padding="18dp">
+
+                    <!-- Columna izquierda: identidad -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/VendorFieldLabel"
+                            android:text="@string/consent_label_name" />
+
+                        <EditText
+                            android:id="@+id/vendor_name"
+                            style="@style/VendorFieldInput"
+                            android:imeOptions="actionNext"
+                            android:inputType="textPersonName|textCapWords"
+                            tools:ignore="LabelFor" />
+
+                        <View style="@style/Hairline" />
+
+                        <TextView
+                            style="@style/VendorFieldLabel"
+                            android:text="@string/consent_label_doc_type" />
+
+                        <EditText
+                            android:id="@+id/vendor_doc_type"
+                            style="@style/VendorFieldInput"
+                            android:inputType="none"
+                            tools:ignore="LabelFor" />
+
+                        <View style="@style/Hairline" />
+
+                        <TextView
+                            style="@style/VendorFieldLabel"
+                            android:text="@string/consent_label_doc_id" />
+
+                        <EditText
+                            android:id="@+id/vendor_doc_id"
+                            style="@style/VendorFieldInput"
+                            android:imeOptions="actionNext"
+                            android:inputType="number"
+                            tools:ignore="LabelFor" />
+                    </LinearLayout>
+
+                    <!-- Separador vertical entre columnas -->
+                    <View
+                        android:layout_width="1dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginHorizontal="20dp"
+                        android:background="@color/border_hairline" />
+
+                    <!-- Columna derecha: contacto + tipo de cliente -->
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            style="@style/VendorFieldLabel"
+                            android:text="@string/consent_label_email" />
+
+                        <EditText
+                            android:id="@+id/vendor_email"
+                            style="@style/VendorFieldInput"
+                            android:imeOptions="actionNext"
+                            android:inputType="textEmailAddress"
+                            tools:ignore="LabelFor" />
+
+                        <View style="@style/Hairline" />
+
+                        <TextView
+                            style="@style/VendorFieldLabel"
+                            android:text="@string/consent_label_phone" />
+
+                        <EditText
+                            android:id="@+id/vendor_phone"
+                            style="@style/VendorFieldInput"
+                            android:imeOptions="actionDone"
+                            android:inputType="phone"
+                            tools:ignore="LabelFor" />
+
+                        <!--
+                            Tipo de cliente con el que se va a enviar. SOLO
+                            LECTURA: el cajero no lo elige, lo trae HioPos o lo
+                            produce la decisión de Koaj Lovers. Está acá para que
+                            pueda verificar con qué tipo se envía antes de
+                            confirmar.
+
+                            El texto de apoyo dice de qué depende cuando todavía
+                            puede cambiar — mientras el formulario está abierto el
+                            tipo NO está decidido, y mostrar "Estándar" a secas
+                            sería mentir por omisión. Ver
+                            CustomerTypeResolver.project.
+                        -->
+                        <LinearLayout
+                            android:id="@+id/vendor_customer_type_block"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            tools:visibility="visible">
+
+                            <View style="@style/Hairline" />
+
+                            <TextView
+                                style="@style/VendorFieldLabel"
+                                android:text="@string/vendor_customer_type_label" />
+
+                            <TextView
+                                android:id="@+id/vendor_customer_type_value"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:fontFamily="sans-serif-medium"
+                                android:textColor="@color/text_primary"
+                                android:textSize="17sp"
+                                android:textStyle="bold"
+                                tools:text="Estándar" />
+
+                            <TextView
+                                android:id="@+id/vendor_customer_type_hint"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:textColor="@color/text_secondary"
+                                android:textSize="12sp"
+                                tools:text="Pasa a VIP si acepta Koaj Lovers" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/vendor_validation_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:textColor="@color/koaj_state_invalid"
+                    android:textSize="13sp"
+                    android:visibility="gone"
+                    tools:text="Faltan: Correo"
+                    tools:visibility="visible" />
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- ── Pie: salida para el cajero ────────────────────────────── -->
+        <LinearLayout
+            android:id="@+id/vendor_footer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_koaj_footer"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="28dp"
+            android:paddingVertical="14dp">
+
+            <!--
+                ⚠️ El orden de este pie es la regla, no una casualidad:
+                **retroceso pegado al borde izquierdo, primaria al derecho.**
+
+                Antes los dos estaban juntos en la esquina derecha con "Volver"
+                inmediatamente a la izquierda de "Aceptar". Técnicamente Aceptar
+                ya era el de la derecha, pero pegados no se leen como "izquierda y
+                derecha" sino como un par, y un cajero apurado le puede pegar al
+                equivocado. Separados por el bloque del hint (que se queda con
+                todo el espacio libre) la distinción es inequívoca.
+
+                Si se agrega otro botón: los de retroceso/salida van ANTES del
+                bloque con `layout_weight`, los primarios DESPUÉS.
+            -->
+            <!--
+                Salida a HioPos. Va PRIMERO, o sea pegada al borde izquierdo:
+                misma regla del pie —retroceso a la izquierda, primaria a la
+                derecha—.
+
+                Existe porque hasta ahora la única forma de abandonar el flujo era
+                el botón atrás del sistema, que un cajero no tiene por qué adivinar.
+                Devuelve `RESULT_CANCELED`, y como el behaviour declara
+                `CanContinue = true`, HioPosCloud sigue con la venta sin cliente en
+                vez de abortarla.
+
+                Visible en todas las etapas salvo DONE, donde ya no hay nada que
+                cancelar (lo maneja `applyStage`).
+            -->
+            <Button
+                android:id="@+id/vendor_btn_cancel"
+                android:layout_width="wrap_content"
+                android:layout_height="52dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/bg_koaj_btn_outline_ink"
+                android:fontFamily="sans-serif-medium"
+                android:paddingHorizontal="24dp"
+                android:stateListAnimator="@null"
+                android:text="@string/vendor_btn_exit"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp" />
+
+            <Button
+                android:id="@+id/vendor_btn_back"
+                android:layout_width="wrap_content"
+                android:layout_height="52dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/bg_koaj_btn_outline_ink"
+                android:fontFamily="sans-serif-medium"
+                android:paddingHorizontal="24dp"
+                android:stateListAnimator="@null"
+                android:text="@string/vendor_back_to_document"
+                android:textAllCaps="false"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/vendor_footer_hint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/vendor_footer_hint"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:alpha="0.7"
+                    android:fontFamily="serif"
+                    android:letterSpacing="0.07"
+                    android:text="@string/vendor_credit"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"
+                    android:textStyle="italic" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/vendor_btn_accept"
+                android:layout_width="wrap_content"
+                android:layout_height="52dp"
+                android:background="@drawable/bg_koaj_btn_primary_ink"
+                android:fontFamily="sans-serif-medium"
+                android:paddingHorizontal="32dp"
+                android:stateListAnimator="@null"
+                android:text="@string/consent_accept"
+                android:textAllCaps="false"
+                android:textColor="@color/koaj_btn_primary_text"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Selector de tipo de documento (mismo patrón que la 11") -->
+    <FrameLayout
+        android:id="@+id/zone_doc_type_picker"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <View
+            android:id="@+id/doc_type_picker_scrim"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#B30B0B0B"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <LinearLayout
+            android:id="@+id/doc_type_picker_card"
+            android:layout_width="440dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:background="@drawable/bg_koaj_card_white"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/consent_doc_type_dialog_title"
+                android:textColor="@color/text_primary"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/doc_type_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <ImageView
+        android:id="@+id/keyboard_dismiss"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_gravity="bottom|end"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="86dp"
+        android:background="@drawable/bg_koaj_btn_primary_ink"
+        android:contentDescription="@string/consent_hide_keyboard"
+        android:padding="12dp"
+        android:src="@drawable/ic_keyboard_hide"
+        android:visibility="gone" />
+
+    <!--
+        Overlay de "cargando" premium: el pod notification XL centrado
+        que aparece mientras el cliente está decidiendo sobre Koaj Lovers.
+        Se anima en VendorScreen.kt vía PodAnimator.
+    -->
+    <include
+        android:id="@+id/vendor_loading_overlay"
+        layout="@layout/view_vendor_loading_overlay" />
+
+    <!--
+        Overlay de "flow completado": check XL con confetti cuando el
+        cliente ya decidió (Koaj Lovers o Consumidor Final). Aparece
+        durante el beat final antes de devolver el resultado al POS.
+        Se anima en VendorScreen.kt vía CompletionAnimator.
+    -->
+    <include
+        android:id="@+id/vendor_done_overlay"
+        layout="@layout/view_vendor_done_overlay" />
+</FrameLayout>

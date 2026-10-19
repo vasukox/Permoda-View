@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Botón primario gold para el driver de QA.
+
+    Antes: `brand_blue_strong` (azul intenso #FF2563EB) — el cajero lo
+    identificaba como "morado" y rompía el sistema blanco + gold Koaj. El
+    sistema un-acento (gold) de la marca no admite segundo color para CTA.
+
+    14-08-2026: migrado a `bg_koaj_btn_gold` (mismo drawable que el botón
+    "Continuar" del vendor) con ripple blanco. Ahora todo el flow se ve
+    Koaj, incluido el harness de QA.
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#33FFFFFF">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/accent_secondary" />
+            <stroke android:width="2dp" android:color="@color/border_accent_strong" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+</ripple>
+

@@ -1,0 +1,37 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.cxx/
+
+# ── Firma de release ─────────────────────────────────────────────────
+# La keystore vive en C:/Proyectos/keystores/ (fuera del repo) y las
+# contraseñas en ~/.gradle/gradle.properties. Estas reglas son la red de
+# seguridad para que un descuido no versione la clave privada.
+*.jks
+*.keystore
+*.p12
+*.pfx
+keystore.properties
+signing.properties
+**/CREDENCIALES*.txt
+# NOTA: el `gradle.properties` del proyecto SÍ se versiona (sólo lleva
+# configuración de build). Las credenciales de firma van en el
+# `~/.gradle/gradle.properties` del usuario, que no forma parte del repo.
+
+# Artefactos y evidencias locales; pueden contener datos personales/tokens históricos.
+.claude/
+.kotlin/
+*.apk
+*.apk.idsig
+qa/logs/
+qa/apk-dex/
+qa/hiopos-extracted/
+qa/hiopos-pull/
+qa/hiopos-fresh.zip
+
+# Documentación de ICG entregada a integradores: no se publica.
+HPCL.025*.pdf

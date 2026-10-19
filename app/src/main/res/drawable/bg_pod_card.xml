@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Card premium del pod.
+
+    Layer-list:
+      · Fondo principal: negro cálido (no negro puro, no quemar el contraste)
+        con un acento radial dorado arriba a la derecha — el mismo recurso
+        visual del hero de Koaj Lovers en la pantalla del cliente, así las
+        dos pantallas se leen como una sola experiencia.
+      · Borde hairline dorado translúcido para rematar la silueta sin
+        endurecerla.
+
+    El radio de 28dp es intencional: más que una tarjeta común (16) y menos
+    que un pill (40), queda en el punto "premium sin ser chip".
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:angle="0"
+                android:startColor="#FF1C1611"
+                android:endColor="#FF0B0B0B"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <gradient
+                android:centerX="0.78"
+                android:centerY="0.18"
+                android:endColor="#00000000"
+                android:gradientRadius="360"
+                android:startColor="#4DD9B877"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="28dp" />
+            <stroke
+                android:width="1dp"
+                android:color="#33D9B877" />
+            <solid android:color="#00000000" />
+        </shape>
+    </item>
+</layer-list>

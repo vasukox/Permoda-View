@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Ripple para filas tappables de la pantalla del cliente
+    (zone_awaiting_document y las filas del selector de tipo de documento).
+
+    El ripple es gold translúcido y no negro: sobre cream y blanco, un
+    ripple negro se lee como "suciedad"; el gold se lee como respuesta de
+    marca. Alfa bajo (20%) porque la fila es grande y un ripple saturado a
+    ese tamaño resulta agresivo.
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/focus_accent_tint">
+    <item android:id="@android:id/mask">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFFFF" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+</ripple>

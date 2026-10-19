@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Eventos exclusivos: entrada con muescas laterales y una estrella. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/koaj_ink">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M20,7V5H4v2a2,2 0 0 1 0,4v2a2,2 0 0 1 0,4v2h16v-2a2,2 0 0 1 0,-4v-2a2,2 0 0 1 0,-4zM18,9.28v5.44a4,4 0 0 0 0,4.28H6a4,4 0 0 0 0,-4.28V9.28A4,4 0 0 0 6,5h12a4,4 0 0 0 0,4.28z" />
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,8.2l0.93,1.9 2.07,0.3 -1.5,1.47 0.35,2.06L12,12.96l-1.85,0.97 0.35,-2.06 -1.5,-1.47 2.07,-0.3z" />
+</vector>

@@ -1,0 +1,7 @@
+<CustomerResult>
+  <CustomerField Key="customerId">-1</CustomerField>
+  <CustomerField Key="customerTypeId">10</CustomerField>
+  <CustomerField Key="contactTypeId">1</CustomerField>
+  <CustomerField Key="fiscalId">12345678</CustomerField>
+  <CustomerField Key="fiscalDocumentType">9</CustomerField>
+</CustomerResult>

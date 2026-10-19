@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Koaj Lovers en la pantalla del cliente de 11".
+    Ver la explicación completa en `values/dimens.xml`.
+
+    Se activa cuando el ancho mínimo del display es >= 720dp. Con la densidad de
+    las terminales de la flota (240 dpi, verificado en el POS C9H), una pantalla
+    de 11" a 1920x1080 son 1280x720dp: entra justo en este bucket.
+
+    Escala ~1.4x sobre los valores base. No es un múltiplo uniforme: el hero
+    crece más que el texto de las tarjetas porque en una pantalla grande lo que
+    tiene que ganar presencia es la imagen y el título, no el cuerpo — un cuerpo
+    de 14sp ya se lee de sobra a la distancia a la que está el cliente, y
+    agrandarlo obligaría a partir las tarjetas en más líneas.
+-->
+<resources>
+
+    <!-- Cabecera con el wordmark KOAJ -->
+    <dimen name="koaj_header_text">34sp</dimen>
+    <dimen name="koaj_header_pad_v">22dp</dimen>
+
+    <!-- Hero -->
+    <dimen name="koaj_hero_height">440dp</dimen>
+    <dimen name="koaj_hero_pad_start">48dp</dimen>
+    <dimen name="koaj_hero_pad_bottom">40dp</dimen>
+    <dimen name="koaj_eyebrow_text">15sp</dimen>
+    <dimen name="koaj_title_text">74sp</dimen>
+    <dimen name="koaj_title_heart">40dp</dimen>
+    <dimen name="koaj_rule_width">72dp</dimen>
+    <dimen name="koaj_tagline_text">21sp</dimen>
+    <dimen name="koaj_subtitle_text">17sp</dimen>
+
+    <!-- Bloque crema -->
+    <dimen name="koaj_section_pad_h">44dp</dimen>
+    <dimen name="koaj_section_pad_top">38dp</dimen>
+    <dimen name="koaj_section_pad_bottom">32dp</dimen>
+    <dimen name="koaj_perks_title_text">23sp</dimen>
+    <dimen name="koaj_divider_heart">20dp</dimen>
+
+    <!-- Tarjetas de beneficio -->
+    <dimen name="koaj_perk_card_pad_h">16dp</dimen>
+    <dimen name="koaj_perk_card_pad_top">22dp</dimen>
+    <dimen name="koaj_perk_card_pad_bottom">20dp</dimen>
+    <dimen name="koaj_perk_card_gap">14dp</dimen>
+    <dimen name="koaj_perk_icon_frame">58dp</dimen>
+    <dimen name="koaj_perk_icon">28dp</dimen>
+    <dimen name="koaj_perk_title_text">14sp</dimen>
+    <dimen name="koaj_perk_body_text">13sp</dimen>
+
+    <!-- Llamada a la acción -->
+    <dimen name="koaj_cta_headline_text">21sp</dimen>
+    <dimen name="koaj_cta_sub_text">17sp</dimen>
+    <dimen name="koaj_accept_text">32sp</dimen>
+    <dimen name="koaj_accept_sub_text">15sp</dimen>
+    <dimen name="koaj_accept_pad_v">20dp</dimen>
+    <dimen name="koaj_accept_heart">30dp</dimen>
+    <dimen name="koaj_skip_height">60dp</dimen>
+    <dimen name="koaj_skip_text">18sp</dimen>
+    <dimen name="koaj_hint_text">14sp</dimen>
+    <dimen name="koaj_hint_icon">17dp</dimen>
+    <dimen name="koaj_countdown_text">15sp</dimen>
+
+    <!-- Ficha del modulo: en la pantalla del cajero (1280dp de ancho) el
+         card a todo lo ancho deja una linea de texto larguisima. El padding
+         grande en sw720dp lo acota a una medida legible. -->
+    <dimen name="module_info_pad_h">300dp</dimen>
+</resources>

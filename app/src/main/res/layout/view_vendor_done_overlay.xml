@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Overlay "flow completado" · XL premium · "Cliente extraído / confirmado".
+
+    Se muestra al final del flujo (DONE) durante el beat antes de devolver
+    el resultado al POS. Es el "le dimos cierre" visual al trabajo del
+    cajero.
+
+    Elementos animados por el [CompletionAnimator] desde VendorScreen.kt:
+      · Check XL 120dp con círculo 140dp que se dibuja alrededor
+      · Halo verde que respira al asentarse
+      · Eyebrow KOAJ + título grande + subtítulo
+      · Confetti: 16 partículas (gold/cream/ink) cayendo y dispersándose
+      · Backdrop con fade in premium
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/vendor_done_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_done_backdrop"
+    android:clickable="false"
+    android:focusable="false"
+    android:visibility="gone"
+    tools:visibility="visible">
+
+    <!--
+        Card de completion. Mismo sistema premium que el pod (cream +
+        borde gold) pero con un acento verde Koaj en lugar del halo dorado
+        — el verde dice "listo", no "esperando".
+    -->
+    <LinearLayout
+        android:id="@+id/vendor_done_card"
+        android:layout_width="@dimen/done_card_width"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_done_card"
+        android:clickable="false"
+        android:focusable="false"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="36dp"
+        android:paddingVertical="@dimen/done_card_padding_v">
+
+        <!-- Eyebrow KOAJ · POS -->
+        <TextView
+            android:id="@+id/vendor_done_eyebrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.38"
+            android:text="@string/vendor_eyebrow"
+            android:textAllCaps="true"
+            android:textColor="@color/koaj_done_primary"
+            android:textSize="@dimen/done_eyebrow_text"
+            android:textStyle="bold" />
+
+        <!--
+            Stage del check XL. Halo verde + círculo 140dp + check 120dp
+            apilados. La animación de dibujado del círculo la maneja
+            CompletionAnimator (clip sobre un drawable circular + ObjectAnimator
+            sobre el path del check).
+        -->
+        <FrameLayout
+            android:layout_width="@dimen/done_check_size"
+            android:layout_height="@dimen/done_check_size"
+            android:layout_marginTop="28dp">
+
+            <!-- Halo verde Koaj detrás del check. Respira 1.0 → 1.15 → 1.0 -->
+            <View
+                android:id="@+id/vendor_done_halo"
+                android:layout_width="@dimen/done_ring_size"
+                android:layout_height="@dimen/done_ring_size"
+                android:layout_gravity="center"
+                android:alpha="0"
+                android:background="@drawable/bg_done_halo" />
+
+            <!-- Anillo verde que se dibuja al entrar (clip reveal) -->
+            <View
+                android:id="@+id/vendor_done_ring"
+                android:layout_width="@dimen/done_ring_size"
+                android:layout_height="@dimen/done_ring_size"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_done_ring" />
+
+            <!--
+                Check verde sobre el círculo. El stroke del path se anima
+                con un trim path (0 → 1) en CompletionAnimator.
+            -->
+            <ImageView
+                android:id="@+id/vendor_done_check"
+                android:layout_width="76dp"
+                android:layout_height="76dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_done_check_path"
+                app:tint="@color/koaj_done_primary"
+                xmlns:app="http://schemas.android.com/apk/res-auto" />
+        </FrameLayout>
+
+        <!-- Título XL -->
+        <TextView
+            android:id="@+id/vendor_done_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="28dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/vendor_done_title_accepted"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/done_title_text"
+            android:textStyle="bold" />
+
+        <!-- Subtítulo -->
+        <TextView
+            android:id="@+id/vendor_done_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:text="@string/vendor_done_subtitle_accepted"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/done_subtitle_text" />
+    </LinearLayout>
+
+    <!--
+        Contenedor de confetti. Las partículas se inflan dinámicamente
+        en CompletionAnimator. Vive fuera del card para que el card no
+        las recorte y para que la lluvia sea visible sobre el backdrop.
+    -->
+    <FrameLayout
+        android:id="@+id/vendor_done_confetti"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"
+        android:focusable="false" />
+</FrameLayout>

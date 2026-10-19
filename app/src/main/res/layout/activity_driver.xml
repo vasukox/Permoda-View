@@ -1,0 +1,465 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pantalla del operador — siempre visible:
+      · Header (40%)  → gradiente Koaj (cream → tan) con ícono circular pulsante
+                         + texto dinámico según la fase del cliente.
+      · Mirror (60%)  → réplica en vivo del formulario del cliente (10").
+                        Editable por el operador; los cambios se propagan
+                        a la pantalla del cliente en tiempo real.
+
+    14-08-2026: se eliminaron los azules corporativos (#FF2563EB, gradiente
+    azul #1E3A8A→#07153C). El sistema visual ahora es blanco + gold Koaj
+    también en el driver, así no se ve "morado" en ninguna parte.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_app"
+    android:orientation="vertical">
+
+    <!-- HEADER PREMIUM (siempre visible) -->
+    <LinearLayout
+        android:id="@+id/driver_top"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.4"
+        android:background="@drawable/bg_koaj_hero_cream"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="130dp"
+            android:layout_height="130dp"
+            android:layout_marginBottom="16dp">
+
+            <View
+                android:layout_width="130dp"
+                android:layout_height="130dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_avatar_glow" />
+
+            <FrameLayout
+                android:layout_width="90dp"
+                android:layout_height="90dp"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_avatar_koaj_strong"
+                android:elevation="6dp">
+
+                <ImageView
+                    android:id="@+id/driver_avatar"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/app_name"
+                    android:src="@drawable/ic_person_white" />
+            </FrameLayout>
+
+            <!-- Badge pequeño en esquina superior derecha (animación) -->
+            <View
+                android:id="@+id/driver_avatar_pulse"
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:layout_gravity="end|top"
+                android:background="@drawable/bg_avatar_glow"
+                android:alpha="0.8" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/driver_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="Esperando respuesta del cliente"
+            android:textColor="@color/text_inverse"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/driver_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif"
+            android:gravity="center"
+            android:text="Esperando que el cliente se identifique"
+            android:textColor="@color/text_inverse_muted"
+            android:textSize="13sp" />
+
+        <!-- 3 puntos animados -->
+        <LinearLayout
+            android:id="@+id/driver_dots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:orientation="horizontal">
+
+            <View
+                android:id="@+id/driver_dot_1"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="8dp"
+                android:alpha="0.4"
+                android:background="@drawable/bg_dot_white" />
+
+            <View
+                android:id="@+id/driver_dot_2"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="8dp"
+                android:alpha="0.4"
+                android:background="@drawable/bg_dot_white" />
+
+            <View
+                android:id="@+id/driver_dot_3"
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:alpha="0.4"
+                android:background="@drawable/bg_dot_white" />
+        </LinearLayout>
+
+        <!-- Bloque de resultado final (cliente aceptó/rechazó) — overlay -->
+        <LinearLayout
+            android:id="@+id/driver_result_block"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/bg_koaj_hero_dark"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/driver_result_icon"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginBottom="20dp"
+                android:contentDescription="@string/app_name" />
+
+            <TextView
+                android:id="@+id/driver_result_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:textColor="@color/text_inverse"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/driver_result_subtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="sans-serif"
+                android:gravity="center"
+                android:textColor="@color/text_inverse_muted"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- MIRROR DEL CLIENTE (siempre visible, scrollable) -->
+    <FrameLayout
+        android:id="@+id/driver_bottom"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="0.6"
+        android:background="@color/bg_app">
+
+        <!-- Header del mirror -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/accent_secondary"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="14dp"
+            android:paddingVertical="8dp">
+
+            <View
+                android:layout_width="8dp"
+                android:layout_height="8dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_dot_white" />
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.1"
+                android:text="VISTA DEL CLIENTE (10&quot;)"
+                android:textAllCaps="true"
+                android:textColor="@color/text_inverse"
+                android:textSize="11sp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:text="En vivo ●"
+                android:textColor="@color/text_inverse_muted"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <ScrollView
+            android:id="@+id/mirror_scroll"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="32dp"
+            android:fillViewport="true">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="12dp">
+
+                <TextView
+                    android:id="@+id/mirror_phase_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif"
+                    android:gravity="center"
+                    android:letterSpacing="0.05"
+                    android:paddingBottom="10dp"
+                    android:text="Esperando que el cliente se identifique…"
+                    android:textAllCaps="true"
+                    android:textColor="@color/text_label"
+                    android:textSize="10sp" />
+
+                <!-- Fila Nombre -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:background="@drawable/bg_white_card"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:letterSpacing="0.05"
+                        android:text="NOMBRE"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_label"
+                        android:textSize="9sp" />
+
+                    <EditText
+                        android:id="@+id/mirror_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@null"
+                        android:fontFamily="sans-serif-medium"
+                        android:hint="—"
+                        android:imeOptions="actionNext"
+                        android:inputType="textPersonName|textCapWords"
+                        android:textColor="@color/text_strong"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <!-- Fila Tipo doc -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:background="@drawable/bg_white_card"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:letterSpacing="0.05"
+                        android:text="TIPO DE DOCUMENTO"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_label"
+                        android:textSize="9sp" />
+
+                    <EditText
+                        android:id="@+id/mirror_doc_type"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@null"
+                        android:clickable="true"
+                        android:cursorVisible="false"
+                        android:focusable="false"
+                        android:focusableInTouchMode="false"
+                        android:fontFamily="sans-serif-medium"
+                        android:hint="Toca para seleccionar"
+                        android:inputType="text"
+                        android:textColor="@color/text_strong"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <!-- Fila Número doc -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:background="@drawable/bg_white_card"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:letterSpacing="0.05"
+                        android:text="NÚMERO DE DOCUMENTO"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_label"
+                        android:textSize="9sp" />
+
+                    <EditText
+                        android:id="@+id/mirror_doc_id"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@null"
+                        android:fontFamily="sans-serif-medium"
+                        android:hint="—"
+                        android:imeOptions="actionNext"
+                        android:inputType="number"
+                        android:textColor="@color/text_strong"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <!-- Fila Email -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:background="@drawable/bg_white_card"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:letterSpacing="0.05"
+                        android:text="CORREO"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_label"
+                        android:textSize="9sp" />
+
+                    <EditText
+                        android:id="@+id/mirror_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@null"
+                        android:fontFamily="sans-serif-medium"
+                        android:hint="—"
+                        android:imeOptions="actionNext"
+                        android:inputType="textEmailAddress"
+                        android:textColor="@color/text_strong"
+                        android:textSize="14sp" />
+                </LinearLayout>
+
+                <!-- Fila Teléfono -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:background="@drawable/bg_white_card"
+                    android:orientation="vertical"
+                    android:padding="8dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif"
+                        android:letterSpacing="0.05"
+                        android:text="TELÉFONO"
+                        android:textAllCaps="true"
+                        android:textColor="@color/text_label"
+                        android:textSize="9sp" />
+
+                    <EditText
+                        android:id="@+id/mirror_phone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:background="@null"
+                        android:fontFamily="sans-serif-medium"
+                        android:hint="—"
+                        android:imeOptions="actionDone"
+                        android:inputType="phone"
+                        android:textColor="@color/text_strong"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
+
+        <!-- Botón flotante ▼ Cerrar teclado -->
+        <ImageButton
+            android:id="@+id/keyboard_dismiss"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="12dp"
+            android:background="@drawable/bg_koaj_btn_gold"
+            android:contentDescription="@string/consent_hide_keyboard"
+            android:elevation="12dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_keyboard_hide"
+            android:visibility="gone" />
+
+        <!-- Overlay de selección de tipo de documento (mismo estilo que la pantalla del cliente) -->
+        <FrameLayout
+            android:id="@+id/zone_doc_type_picker"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#E6000000"
+            android:clickable="true"
+            android:focusable="true"
+            android:visibility="gone">
+
+            <View
+                android:id="@+id/doc_type_picker_scrim"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#E6000000" />
+
+            <LinearLayout
+                android:id="@+id/doc_type_picker_card"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginHorizontal="20dp"
+                android:background="@drawable/bg_white_card_premium"
+                android:clickable="false"
+                android:descendantFocusability="blocksDescendants"
+                android:elevation="12dp"
+                android:focusable="false"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="@string/consent_doc_type_dialog_title"
+                    android:textColor="@color/text_strong"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/doc_type_list"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clickable="false"
+                    android:focusable="false"
+                    android:orientation="vertical" />
+            </LinearLayout>
+        </FrameLayout>
+    </FrameLayout>
+</LinearLayout>

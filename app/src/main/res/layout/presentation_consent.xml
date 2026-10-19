@@ -1,0 +1,1184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pantalla del cliente en la 10"/11".
+
+    Sistema navy enterprise (19-ago-2026). Todas las zonas de este layout
+    comparten la paleta del cajero (fondo gris frío, tarjetas blancas con
+    hairline azul, CTA navy sólido) — así el cliente y el cajero están
+    mirando el mismo sistema al mismo tiempo.
+
+    La ÚNICA excepción es `zone_loyalty` (Koaj Lovers), que sigue siendo
+    oscura con oro tal cual la aprobó marca. Ese contraste es deliberado y
+    **se conservó a propósito en el re-skin a navy**: el resto del flujo es
+    "trámite" y la pantalla de Koaj Lovers es "invitación". Cuando el fondo
+    se va a negro, el cliente sabe que cambió de tema.
+
+    ⚠️ NO uniformar esa zona con las demás. Usa su propio juego de tokens
+    (`koaj_gold`, `koaj_black`, `koaj_ink`…) y sus propios 10 drawables, que
+    quedaron explícitamente fuera del barrido de la paleta. Cambiarla es una
+    conversación con marca, no un cambio de token.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_app">
+
+    <LinearLayout
+        android:id="@+id/zone_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="visible">
+
+        <ProgressBar
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_marginBottom="20dp"
+            android:indeterminateTint="@color/accent_secondary" />
+
+        <TextView
+            android:id="@+id/loading_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/state_loading"
+            android:textColor="@color/text_primary"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <!--
+        HU-HIOPOS · `zone_validated` (la pantalla intermedia con el check
+        "Datos validados en la DIAN") se ELIMINÓ, no sólo se ocultó.
+
+        Llevaba tiempo en `visibility=gone` y ningún estado la pintaba:
+        `ScreenState.Validated` nunca se emitía. Mantener el layout, los
+        cuatro `findViewById`, el `applyDianStatus` y los strings de tres
+        variantes era cargar con una pantalla muerta que nadie veía.
+
+        El razonamiento de producto sigue siendo el mismo: el cliente ya no
+        edita, así que una confirmación intermedia le agrega ruido sin
+        valor. De la validación se pasa directo al form (`zone_data`). El
+        estado real de la DIAN lo ve el vendedor en su VendorScreen, que es
+        quien puede hacer algo con esa información.
+    -->
+
+    <!-- Overlay de selección de tipo de documento.
+         Estructura: FrameLayout "fondo" (solo fondo oscuro, cierra al tap)
+                     LinearLayout "card" (NO clickable, no consume taps)
+                       - título
+                       - lista de filas (cada una clickable individualmente) -->
+    <FrameLayout
+        android:id="@+id/zone_doc_type_picker"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#B30B0B0B"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone">
+
+        <!-- Scrim: negro Koaj al 70%, el mismo del picker del vendedor. El
+             #E6000000 anterior (90% de negro puro) apagaba tanto el fondo
+             que el card parecía flotar en el vacío. -->
+        <View
+            android:id="@+id/doc_type_picker_scrim"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#B30B0B0B" />
+
+        <LinearLayout
+            android:id="@+id/doc_type_picker_card"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginHorizontal="28dp"
+            android:background="@drawable/bg_koaj_card_white"
+            android:clickable="false"
+            android:descendantFocusability="blocksDescendants"
+            android:elevation="12dp"
+            android:focusable="false"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/consent_doc_type_dialog_title"
+                android:textColor="@color/text_primary"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/doc_type_list"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="false"
+                android:focusable="false"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </FrameLayout>
+
+    <!-- Botón flotante: ▼ Cerrar teclado (aparece cuando el teclado está abierto).
+         Gold con el icono en tinta: el vector `ic_keyboard_hide` es blanco
+         de fábrica y sobre gold quedaba ilegible. -->
+    <ImageButton
+        android:id="@+id/keyboard_dismiss"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:background="@drawable/bg_koaj_btn_primary_ink"
+        android:contentDescription="@string/consent_hide_keyboard"
+        android:elevation="12dp"
+        android:padding="14dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_keyboard_hide"
+        app:tint="@color/text_on_primary"
+        android:visibility="gone" />
+
+    <!-- ============================================================= -->
+    <!-- Espera de la decisión del vendedor.                           -->
+    <!-- El cliente no tiene ninguna acción aquí a propósito: el flujo  -->
+    <!-- lo conduce el vendedor y esta pantalla sólo evita que el       -->
+    <!-- cliente crea que se colgó.                                     -->
+    <!-- ============================================================= -->
+    <LinearLayout
+        android:id="@+id/zone_waiting_vendor"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg_app"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="48dp"
+        android:visibility="gone">
+
+        <ProgressBar
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_marginBottom="26dp"
+            android:indeterminateTint="@color/accent_secondary" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/state_waiting_vendor_title"
+            android:textColor="@color/text_primary"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:gravity="center"
+            android:text="@string/state_waiting_vendor_subtitle"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:id="@+id/zone_awaiting_document"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:scrollbarStyle="outsideOverlay"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="36dp"
+            android:paddingTop="48dp"
+            android:paddingBottom="32dp">
+
+            <TextView
+                android:id="@+id/awaiting_prompt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:text="@string/state_awaiting_validating"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp" />
+
+            <!-- Card de marca: blanco con borde gold y sombra propia. El
+                 `elevation` se deja en 0 porque `bg_koaj_card_white` ya
+                 pinta su sombra en el layer-list; sumar las dos daba un
+                 halo gris sucio alrededor del borde dorado. -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:background="@drawable/bg_koaj_card_white"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:id="@+id/awaiting_field_doc_type"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_row_ripple"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center_vertical"
+                    android:minHeight="56dp"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="16dp"
+                        android:contentDescription="@string/consent_label_doc_type"
+                        android:src="@drawable/ic_id"
+                        app:tint="@color/accent_secondary" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="0.22"
+                            android:text="@string/consent_label_doc_type"
+                            android:textAllCaps="true"
+                            android:textColor="@color/accent_secondary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/awaiting_field_doc_type_value"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="CC"
+                            android:textColor="@color/text_primary"
+                            android:textSize="18sp" />
+                    </LinearLayout>
+
+                    <!-- Sin lápiz: el cliente no edita nada, sólo mira lo que
+                         el cajero digita. Un ícono de editar invitaba a tocar
+                         una pantalla que es de solo lectura. -->
+                </LinearLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/border_hairline" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:minHeight="56dp"
+                    android:orientation="horizontal"
+                    android:padding="12dp">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_marginEnd="16dp"
+                        android:contentDescription="@string/consent_label_doc_id"
+                        android:src="@drawable/ic_number"
+                        app:tint="@color/accent_secondary" />
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-medium"
+                            android:letterSpacing="0.22"
+                            android:text="@string/consent_label_doc_id"
+                            android:textAllCaps="true"
+                            android:textColor="@color/accent_secondary"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
+
+                        <EditText
+                            android:id="@+id/awaiting_field_doc_id"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:background="@null"
+                            android:fontFamily="sans-serif-medium"
+                            android:hint="@string/consent_doc_id_hint"
+                            android:imeOptions="actionDone"
+                            android:inputType="number"
+                            android:maxLength="20"
+                            android:textColor="@color/text_primary"
+                            android:textColorHint="@color/text_muted"
+                            android:textSize="18sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!--
+                CTA primario gold. Es el mismo `bg_koaj_btn_gold` que usa el
+                vendedor: cuando el cajero pulsa "Continuar" en su pantalla y
+                el cliente pulsa "Continuar" en la suya, están pulsando el
+                mismo botón.
+
+                Sin `drawableStart`: el ✓ delante del texto sobraba (el botón
+                no confirma nada todavía, avanza) y encima `ic_check` es un
+                vector blanco que sobre gold quedaba invisible.
+            -->
+            <Button
+                android:id="@+id/btn_continue"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_koaj_btn_primary_ink"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:stateListAnimator="@null"
+                android:text="@string/consent_continue"
+                android:textAllCaps="false"
+                android:textColor="@color/koaj_btn_primary_text"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/awaiting_link_reject"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:padding="10dp"
+                android:text="@string/consent_reject"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <ScrollView
+        android:id="@+id/zone_data"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true"
+        android:isScrollContainer="true"
+        android:scrollbarStyle="outsideOverlay"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingHorizontal="36dp"
+            android:paddingTop="36dp"
+            android:paddingBottom="32dp">
+
+            <!-- Sin avatar: el cliente mira esta pantalla mientras el cajero
+                 escribe, así que el espacio es para los datos, no para un
+                 ícono decorativo. -->
+
+            <TextView
+                android:id="@+id/consent_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="6dp"
+                android:fontFamily="sans-serif-medium"
+                android:text="@string/consent_title"
+                android:textColor="@color/text_primary"
+                android:textSize="24sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/consent_subtitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="28dp"
+                android:gravity="center"
+                android:text="@string/consent_subtitle"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="32dp"
+                android:background="@drawable/bg_koaj_card_white"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <include android:id="@+id/field_name" layout="@layout/widget_field" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/border_hairline" />
+                <include android:id="@+id/field_doc_type" layout="@layout/widget_field" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/border_hairline" />
+                <include android:id="@+id/field_doc_id" layout="@layout/widget_field" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/border_hairline" />
+                <include android:id="@+id/field_email" layout="@layout/widget_field" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@color/border_hairline" />
+                <include android:id="@+id/field_phone" layout="@layout/widget_field" />
+            </LinearLayout>
+
+            <!-- Aviso: mismo `bg_koaj_warning` del vendedor (cream + franja
+                 gold lateral). El ámbar plano #FEF3C7 anterior era el único
+                 color del sistema que no salía de la paleta Koaj. -->
+            <TextView
+                android:id="@+id/warning_banner"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:background="@drawable/bg_koaj_warning"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:padding="12dp"
+                android:textColor="@color/text_primary"
+                android:textSize="13sp"
+                android:visibility="gone"
+                tools:text="No se pudo validar con DIAN. Datos no verificados."
+                tools:visibility="visible" />
+
+            <!-- Qué falta para poder aceptar. Sólo visible cuando hay algo
+                 pendiente; el botón Aceptar queda deshabilitado en paralelo. -->
+            <TextView
+                android:id="@+id/validation_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="14dp"
+                android:drawablePadding="8dp"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:textColor="@color/koaj_state_invalid"
+                android:textSize="14sp"
+                android:visibility="gone"
+                tools:text="Para continuar: Faltan: Nombre y apellido, Correo"
+                tools:visibility="visible" />
+
+            <Button
+                android:id="@+id/btn_accept"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginBottom="12dp"
+                android:background="@drawable/bg_koaj_btn_primary_ink"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center"
+                android:stateListAnimator="@null"
+                android:text="@string/consent_accept"
+                android:textAllCaps="false"
+                android:textColor="@color/koaj_btn_primary_text"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <!-- El botón de Consumidor Final vive SOLO en la pantalla del
+                 vendedor: es él quien oye "no quiero dar mis datos" y quien
+                 decide facturar al genérico. Ofrecérselo al cliente lo
+                 invitaba a no identificarse. -->
+
+            <TextView
+                android:id="@+id/link_reject"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:padding="10dp"
+                android:text="@string/consent_reject"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <!--
+        Cierre del flujo. Antes era una pantalla verde a sangre (#10B981)
+        con el check en blanco: el verde saturado a pantalla completa era el
+        golpe cromático más fuerte de toda la app y rompía la continuidad
+        justo en el último frame.
+
+        Ahora es cream con el check verde y su halo — exactamente el mismo
+        cierre que el `view_vendor_done_overlay` del cajero. El verde sigue
+        diciendo "listo", pero como acento, no como fondo.
+    -->
+    <LinearLayout
+        android:id="@+id/zone_confirmed"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg_app"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <FrameLayout
+            android:layout_width="180dp"
+            android:layout_height="180dp"
+            android:layout_marginBottom="32dp">
+
+            <View
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:layout_gravity="center"
+                android:alpha="0.9"
+                android:background="@drawable/bg_koaj_confirm_halo" />
+
+            <ImageView
+                android:id="@+id/confirmed_check"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/state_confirmed"
+                android:src="@drawable/ic_check"
+                app:tint="@color/koaj_done_primary" />
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/confirmed_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="32dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/state_confirmed"
+            android:textColor="@color/text_primary"
+            android:textSize="28sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/confirmed_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginHorizontal="32dp"
+            android:gravity="center"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            android:visibility="gone"
+            tools:text="Tus descuentos ya están activos"
+            tools:visibility="visible" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/zone_rejected"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg_surface_alt"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/state_rejected"
+            android:src="@drawable/ic_reject_circle" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="32dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/state_rejected"
+            android:textColor="@color/text_primary"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/zone_error"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg_app"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginBottom="20dp"
+            android:contentDescription="@string/state_error"
+            android:src="@drawable/ic_error_red" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/state_error"
+            android:textColor="@color/text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/error_message"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:gravity="center"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            tools:text="No se pudo leer el XML del cliente." />
+
+        <Button
+            android:id="@+id/btn_retry"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:background="@drawable/bg_koaj_btn_primary_ink"
+            android:fontFamily="sans-serif-medium"
+            android:stateListAnimator="@null"
+            android:text="@string/consent_retry"
+            android:textAllCaps="false"
+            android:textColor="@color/koaj_btn_primary_text"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- ============================================================= -->
+    <!-- Consumidor Final: datos genéricos en modo LECTURA.            -->
+    <!-- No editable a propósito â€” 222222222222 es un valor fijo de    -->
+    <!-- negocio, no un dato que el cliente pueda corregir.            -->
+    <!-- ============================================================= -->
+
+
+    <!-- ================================================================= -->
+    <!-- Comunidad Koaj Lovers.                                            -->
+    <!--                                                                   -->
+    <!-- Diseño calcado del mockup aprobado por marca: cabecera negra con   -->
+    <!-- el wordmark, hero fotográfico con el título en overlay, y bloque   -->
+    <!-- crema con los cuatro beneficios y la llamada a la acción.          -->
+    <!--                                                                   -->
+    <!-- Se muestra SIEMPRE tras el Aceptar del cliente, en los tres        -->
+    <!-- escenarios. La jerarquía la marca el botón negro con borde         -->
+    <!-- dorado: unirse es la acción obvia, y "NO ACEPTO" queda discreto    -->
+    <!-- pero sigue siendo un botón cómodo de pulsar, no un link diminuto.  -->
+    <!--                                                                   -->
+    <!-- âš ï¸ La foto del hero es un placeholder (res/drawable/koaj_hero.xml).-->
+    <!-- Para poner la real: borrar ese archivo y dejar la imagen como      -->
+    <!-- `koaj_hero.webp`. El layout no se toca. Ver el comentario del      -->
+    <!-- propio koaj_hero.xml.                                             -->
+    <!-- ================================================================= -->
+    <!--
+        âš ï¸ KOAJ LOVERS: NO usar ScrollView. El cliente debe ver toda la
+        pantalla sin deslizar, sea en la pantalla de 10" (961x601 dp) o en la
+        de 11" (~1280x800 dp). El cálculo vertical vive en el comentario de
+        `values/dimens.xml`.
+    -->
+    <LinearLayout
+        android:id="@+id/zone_loyalty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/koaj_cream"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <!-- Cabecera negra con el wordmark KOAJ. -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/koaj_black"
+                android:fontFamily="sans-serif-light"
+                android:gravity="center"
+                android:letterSpacing="0.32"
+                android:paddingVertical="@dimen/koaj_header_pad_v"
+                android:text="@string/koaj_brand"
+                android:textColor="@color/text_inverse"
+                android:textSize="@dimen/koaj_header_text" />
+
+            <!-- ==================================================== -->
+            <!-- HERO: texto a la izquierda, modelos recortados a la  -->
+            <!-- derecha, sobre el degradado oscuro.                  -->
+            <!--                                                      -->
+            <!-- Es un LinearLayout horizontal y no un FrameLayout con -->
+            <!-- la foto de fondo, porque `koaj_hero.png` es un        -->
+            <!-- recorte con transparencia y vertical (1420x1568). En  -->
+            <!-- una banda ancha, un centerCrop lo escalaría por el    -->
+            <!-- ancho y recortaría arriba y abajo: se perderían las   -->
+            <!-- caras. Con dos columnas la imagen entra completa y el -->
+            <!-- texto nunca queda encima de los modelos.              -->
+            <!-- ==================================================== -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/koaj_hero_height"
+                android:background="@drawable/bg_koaj_hero_dark"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:gravity="bottom"
+                    android:orientation="vertical"
+                    android:paddingStart="@dimen/koaj_hero_pad_start"
+                    android:paddingEnd="12dp"
+                    android:paddingBottom="@dimen/koaj_hero_pad_bottom">
+
+                    <TextView
+                        android:id="@+id/koaj_eyebrow"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="2dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.3"
+                        android:text="@string/koaj_eyebrow"
+                        android:textColor="@color/koaj_gold_soft"
+                        android:textSize="@dimen/koaj_eyebrow_text" />
+
+                    <!-- Contenedor: el título son dos líneas con estilos
+                         distintos, y ConsentScreen lo anima como un bloque. -->
+                    <LinearLayout
+                        android:id="@+id/koaj_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:includeFontPadding="false"
+                            android:letterSpacing="0.02"
+                            android:text="@string/koaj_title_main"
+                            android:textColor="@color/text_inverse"
+                            android:textSize="@dimen/koaj_title_text"
+                            android:textStyle="bold" />
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:baselineAligned="false"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="serif"
+                                android:includeFontPadding="false"
+                                android:text="@string/koaj_title_lovers"
+                                android:textColor="@color/koaj_gold_soft"
+                                android:textSize="@dimen/koaj_title_text"
+                                android:textStyle="bold|italic" />
+
+                            <ImageView
+                                android:id="@+id/koaj_heart"
+                                android:layout_width="@dimen/koaj_title_heart"
+                                android:layout_height="@dimen/koaj_title_heart"
+                                android:layout_marginStart="6dp"
+                                android:contentDescription="@string/koaj_title"
+                                android:src="@drawable/ic_heart_gold" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                    <View
+                        android:layout_width="@dimen/koaj_rule_width"
+                        android:layout_height="2dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:background="@color/koaj_gold" />
+
+                    <!-- Contenedor: el tagline mezcla tres estilos y
+                         ConsentScreen lo anima como un bloque. -->
+                    <LinearLayout
+                        android:id="@+id/koaj_subtitle"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/koaj_tagline_plain"
+                            android:textColor="@color/text_inverse"
+                            android:textSize="@dimen/koaj_tagline_text" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="6dp"
+                            android:fontFamily="sans-serif-medium"
+                            android:text="@string/koaj_tagline_accent"
+                            android:textColor="@color/koaj_gold_soft"
+                            android:textSize="@dimen/koaj_tagline_text"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:alpha="0.9"
+                            android:lineSpacingExtra="2dp"
+                            android:text="@string/koaj_subtitle"
+                            android:textColor="@color/text_inverse"
+                            android:textSize="@dimen/koaj_subtitle_text" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!--
+                    Los modelos. `wrap_content` + `adjustViewBounds` + `fitEnd`
+                    hacen que la ImageView se dimensione sola respetando el
+                    aspecto del recorte: ocupa los 330dp de alto y toma el ancho
+                    que le corresponda, anclada abajo a la derecha. Así la
+                    imagen nunca se estira ni se recorta, y el texto de la
+                    izquierda se queda con el ancho sobrante.
+                -->
+                <ImageView
+                    android:id="@+id/koaj_hero_image"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:adjustViewBounds="true"
+                    android:contentDescription="@string/koaj_title"
+                    android:scaleType="fitEnd"
+                    android:src="@drawable/koaj_hero" />
+            </LinearLayout>
+
+            <!-- ================================= -->
+            <!-- BENEFICIOS + LLAMADA A LA ACCIÃ“N  -->
+            <!-- ================================= -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/koaj_cream"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingHorizontal="@dimen/koaj_section_pad_h"
+                android:paddingTop="@dimen/koaj_section_pad_top"
+                android:paddingBottom="@dimen/koaj_section_pad_bottom">
+
+                <!-- El título mezcla dos colores ("KOAJ LOVER" en dorado). Se
+                     compone con tres TextViews en fila en vez de un Spannable:
+                     el estilo queda visible en el layout y no hay que tocar
+                     Kotlin para un cambio de copy. -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/koaj_perks_title_plain"
+                        android:textColor="@color/koaj_ink"
+                        android:textSize="@dimen/koaj_perks_title_text" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/koaj_perks_title_accent"
+                        android:textColor="@color/koaj_gold"
+                        android:textSize="@dimen/koaj_perks_title_text"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/koaj_perks_title_tail"
+                        android:textColor="@color/koaj_ink"
+                        android:textSize="@dimen/koaj_perks_title_text" />
+                </LinearLayout>
+
+                <!-- Separador con corazón, como el mockup. -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginBottom="8dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <View
+                        android:layout_width="34dp"
+                        android:layout_height="1dp"
+                        android:background="@color/koaj_gold_soft" />
+
+                    <ImageView
+                        android:layout_width="@dimen/koaj_divider_heart"
+                        android:layout_height="@dimen/koaj_divider_heart"
+                        android:layout_marginHorizontal="8dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_heart_gold" />
+
+                    <View
+                        android:layout_width="34dp"
+                        android:layout_height="1dp"
+                        android:background="@color/koaj_gold_soft" />
+                </LinearLayout>
+
+                <!-- Cuatro beneficios en fila: aprovecha el ancho de la
+                     pantalla del cliente sin empujar el botón fuera de vista. -->
+                <LinearLayout
+                    android:id="@+id/koaj_perks"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10dp"
+                    android:baselineAligned="false"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:id="@+id/koaj_perk_1"
+                        style="@style/KoajPerkCard"
+                        android:layout_marginEnd="@dimen/koaj_perk_card_gap">
+
+                        <FrameLayout style="@style/KoajPerkIconFrame">
+                            <ImageView
+                                style="@style/KoajPerkIcon"
+                                android:contentDescription="@string/koaj_perk_events_title"
+                                android:src="@drawable/ic_koaj_ticket" />
+                        </FrameLayout>
+
+                        <TextView
+                            style="@style/KoajPerkTitle"
+                            android:text="@string/koaj_perk_events_title" />
+
+                        <TextView
+                            style="@style/KoajPerkBody"
+                            android:text="@string/koaj_perk_events_body" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/koaj_perk_2"
+                        style="@style/KoajPerkCard"
+                        android:layout_marginEnd="@dimen/koaj_perk_card_gap">
+
+                        <FrameLayout style="@style/KoajPerkIconFrame">
+                            <ImageView
+                                style="@style/KoajPerkIcon"
+                                android:contentDescription="@string/koaj_perk_discounts_title"
+                                android:src="@drawable/ic_koaj_tag" />
+                        </FrameLayout>
+
+                        <TextView
+                            style="@style/KoajPerkTitle"
+                            android:text="@string/koaj_perk_discounts_title" />
+
+                        <TextView
+                            style="@style/KoajPerkBody"
+                            android:text="@string/koaj_perk_discounts_body" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/koaj_perk_3"
+                        style="@style/KoajPerkCard"
+                        android:layout_marginEnd="@dimen/koaj_perk_card_gap">
+
+                        <FrameLayout style="@style/KoajPerkIconFrame">
+                            <ImageView
+                                style="@style/KoajPerkIcon"
+                                android:contentDescription="@string/koaj_perk_launch_title"
+                                android:src="@drawable/ic_koaj_megaphone" />
+                        </FrameLayout>
+
+                        <TextView
+                            style="@style/KoajPerkTitle"
+                            android:text="@string/koaj_perk_launch_title" />
+
+                        <TextView
+                            style="@style/KoajPerkBody"
+                            android:text="@string/koaj_perk_launch_body" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/koaj_perk_4"
+                        style="@style/KoajPerkCard">
+
+                        <FrameLayout style="@style/KoajPerkIconFrame">
+                            <ImageView
+                                style="@style/KoajPerkIcon"
+                                android:contentDescription="@string/koaj_perk_news_title"
+                                android:src="@drawable/ic_koaj_mail" />
+                        </FrameLayout>
+
+                        <TextView
+                            style="@style/KoajPerkTitle"
+                            android:text="@string/koaj_perk_news_title" />
+
+                        <TextView
+                            style="@style/KoajPerkBody"
+                            android:text="@string/koaj_perk_news_body" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="@dimen/koaj_divider_heart"
+                        android:layout_height="@dimen/koaj_divider_heart"
+                        android:layout_marginEnd="6dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_heart_gold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="@string/koaj_cta_headline"
+                        android:textColor="@color/koaj_ink"
+                        android:textSize="@dimen/koaj_cta_headline_text"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:layout_marginBottom="8dp"
+                    android:text="@string/koaj_cta_sub"
+                    android:textColor="@color/koaj_ink_soft"
+                    android:textSize="@dimen/koaj_cta_sub_text" />
+
+                <!-- Botón principal. Es un LinearLayout y no un Button porque
+                     lleva dos líneas con color y tamaño distintos, como el
+                     mockup; `clickable` + `focusable` le dan el mismo
+                     comportamiento y ConsentScreen sólo le pone un listener. -->
+                <LinearLayout
+                    android:id="@+id/btn_koaj_accept"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="6dp"
+                    android:background="@drawable/bg_btn_koaj"
+                    android:clickable="true"
+                    android:elevation="6dp"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:paddingVertical="@dimen/koaj_accept_pad_v">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <ImageView
+                            android:layout_width="@dimen/koaj_accept_heart"
+                            android:layout_height="@dimen/koaj_accept_heart"
+                            android:layout_marginEnd="8dp"
+                            android:contentDescription="@null"
+                            android:src="@drawable/ic_heart_gold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="sans-serif-black"
+                            android:text="@string/koaj_accept"
+                            android:textColor="@color/koaj_btn_text"
+                            android:textSize="@dimen/koaj_accept_text"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+<TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:gravity="center"
+                        android:fontFamily="sans-serif-medium"
+                        android:letterSpacing="0.08"
+                        android:text="@string/koaj_accept_sub"
+                        android:textColor="@color/koaj_gold_soft"
+                        android:textSize="@dimen/koaj_accept_sub_text" />
+                </LinearLayout>
+
+                <Button
+                    android:id="@+id/link_koaj_skip"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/koaj_skip_height"
+                    android:layout_marginBottom="6dp"
+                    android:background="@drawable/bg_btn_koaj_decline"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.06"
+                    android:stateListAnimator="@null"
+                    android:text="@string/koaj_skip"
+                    android:textColor="@color/koaj_ink_soft"
+                    android:textSize="@dimen/koaj_skip_text" />
+
+                <LinearLayout
+                    android:id="@+id/koaj_free_hint"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="@dimen/koaj_hint_icon"
+                        android:layout_height="@dimen/koaj_hint_icon"
+                        android:layout_marginEnd="5dp"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_koaj_lock" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/koaj_free_hint"
+                        android:textColor="@color/koaj_ink_soft"
+                        android:textSize="@dimen/koaj_hint_text" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/koaj_countdown"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:alpha="0.6"
+                    android:textColor="@color/koaj_ink_soft"
+                    android:textSize="@dimen/koaj_countdown_text"
+                    android:visibility="invisible"
+                    tools:text="Continuando en 5â€¦"
+                    tools:visibility="visible" />
+            </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/zone_no_data"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/bg_app"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:text="@string/state_no_data"
+            android:textColor="@color/text_secondary"
+            android:textSize="20sp" />
+    </LinearLayout>
+</FrameLayout>

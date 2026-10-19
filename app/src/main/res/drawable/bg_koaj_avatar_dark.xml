@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Avatar circle premium para el header del vendor.
+
+    Antes: glow gold detrás de un icono white-on-blue con un white circle
+    de fondo. Sobre cream/white, el white circle desaparecía y el blue
+    body tenía contraste 4.5:1 — borderline AA, no premium.
+
+    Ahora: círculo sólido en tinta Koaj (#1C1B19) con un hairline gold
+    1dp. El icono blanco encima da contraste 18:1 (AAA) y se lee como
+    "marca Koaj dark" — el mismo registro que el corazón del pod, pero
+    constante.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/text_primary" />
+    <stroke
+        android:width="1.2dp"
+        android:color="@color/accent_secondary" />
+</shape>

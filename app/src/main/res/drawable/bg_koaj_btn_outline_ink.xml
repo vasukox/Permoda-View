@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Botón outline tinta Koaj.
+
+    Sustituye al outline blue para acciones secundarias (CF, Volver). El
+    azul medio sobre cream daba contraste 4.5:1 — borderline AA, no
+    premium. La tinta sobre cream da contraste 13:1 (AAA), el sweet spot
+    de "todo se lee perfecto, nada distrae".
+
+    Press: rellena con gold_pale (un toque de calor) sin perder la
+    identidad del botón.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="@color/accent_secondary_pale" />
+            <stroke android:width="2dp" android:color="@color/text_primary" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="14dp" />
+            <solid android:color="@color/bg_surface" />
+            <stroke android:width="2dp" android:color="@color/text_primary" />
+        </shape>
+    </item>
+</selector>

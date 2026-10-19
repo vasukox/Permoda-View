@@ -1,0 +1,296 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App.
+         `app_name` es el label que ve el usuario en el POS y el que aparece
+         registrado en CloudLicense: "Customer Validator Permoda".
+         `module_name` es el nombre interno del módulo en la guía de ICG. -->
+    <string name="app_name">Customer Validator Permoda</string>
+    <string name="module_name">PermodaView</string>
+
+    <!-- Pantalla de validación (10") -->
+    <string name="consent_title">Datos del cliente</string>
+    <string name="consent_subtitle">Por favor, verifica que la información sea correcta.</string>
+    <string name="consent_label_name">NOMBRE Y APELLIDO</string>
+    <string name="consent_label_doc_type">TIPO DE DOCUMENTO</string>
+    <string name="consent_label_doc_id">NÚMERO DE DOCUMENTO</string>
+    <string name="consent_label_email">CORREO</string>
+    <string name="consent_label_phone">TELÉFONO</string>
+    <string name="consent_accept">Aceptar</string>
+    <string name="consent_reject">No acepto</string>
+    <string name="consent_retry">Reintentar</string>
+    <string name="consent_edit">Editar</string>
+    <string name="consent_empty_placeholder">—</string>
+    <!-- Contador de caracteres; sólo visible al acercarse al tope. -->
+    <string name="field_counter">%1$d/%2$d</string>
+
+    <!-- Estados visuales -->
+    <string name="state_loading">Obteniendo datos del cliente…</string>
+    <string name="state_confirmed">✓ Datos confirmados</string>
+    <string name="state_rejected">Esperando corrección del vendedor…</string>
+    <string name="state_error">No se pudo mostrar la información</string>
+    <string name="state_no_data">No hay datos para mostrar</string>
+
+    <!-- Integración DIAN (The Factory HKA) -->
+    <string name="hka_loading_message">Validando con la DIAN…</string>
+    <string name="hka_warning_dian_unavailable">No se pudo validar con la DIAN. Los datos no están verificados.</string>
+    <string name="hka_blocked_conservative">No se pudo validar con la DIAN y el modo es conservador. Verifica con el operador.</string>
+    <string name="hka_invalid_doc_type">Tipo de documento no válido: %1$s</string>
+    <string name="hka_doc_too_short">El número de documento es demasiado corto.</string>
+
+    <!-- Teclado -->
+    <string name="consent_hide_keyboard">Ocultar teclado</string>
+
+    <!-- Flujo CREATE (cliente nuevo) -->
+    <!--
+        Título de la espera en la pantalla del CLIENTE.
+
+        Antes decía "Ingresa tu número y tipo de documento", y era una instrucción
+        que el cliente no puede cumplir: el documento lo teclea el CAJERO en su
+        pantalla, y esta zona es sólo el espejo en vivo de lo que va escribiendo.
+        Pedirle al cliente que ingrese algo donde no tiene teclado lo hace mirar
+        la pantalla esperando poder tocarla.
+
+        "Validando tus datos…" describe lo que de verdad está pasando desde donde
+        está parado el cliente, y no le pide nada.
+    -->
+    <string name="state_awaiting_validating">Validando tus datos…</string>
+    <string name="consent_doc_type_dialog_title">Selecciona tu tipo de documento</string>
+    <string name="consent_doc_type_selected">Seleccionado</string>
+    <string name="consent_doc_id_hint">Número de documento</string>
+    <string name="consent_doc_id_too_short">Ingresa al menos 4 dígitos</string>
+    <string name="consent_continue">Continuar</string>
+
+    <!--
+        Los seis strings del estado intermedio post-consulta DIAN
+        (`state_validated_*`, `state_not_registered_*`, `state_unverified_*`)
+        se eliminaron con `ScreenState.Validated`. Ninguna pantalla los usaba.
+
+        El criterio de copy que los guiaba SIGUE VIGENTE para el resto de la
+        pantalla del cliente: nada de "no estás registrado en la DIAN" ni "no
+        se pudo validar". Son datos operativos del cajero, al cliente no le
+        sirven y lo alarman en medio de su compra. Esos avisos van sólo en la
+        pantalla del vendedor, que es quien puede actuar sobre ellos.
+    -->
+
+    <!-- Subtítulos por escenario -->
+    <string name="subtitle_edit">Por favor, verifica que la información sea correcta.</string>
+    <!--
+        Subtítulos de la pantalla del CLIENTE. Neutros a propósito: "no creado
+        en HioPos" es información del maestro de clientes del POS, no algo que
+        el cliente deba leer mientras paga.
+    -->
+    <string name="subtitle_create_from_dian">Verifica que tus datos sean correctos</string>
+    <string name="subtitle_create_manual">El cajero está ingresando tus datos</string>
+    <string name="subtitle_complete_existing">Verifica que tus datos sean correctos</string>
+
+    <!-- CF obsoleto: las pantallas del cliente ya no muestran la opción;
+         el vendor la maneja desde su gate. Los strings del CF se mantienen
+         por si el driver de QA los referencia, pero no se renderizan. -->
+    <string name="cf_title">Consumidor Final</string>
+    <string name="cf_subtitle">Se facturará sin datos personales. Confirma para continuar.</string>
+    <string name="cf_readonly_note">Datos genéricos · no editables</string>
+    <string name="cf_back">Volver a ingresar mis datos</string>
+
+    <!--
+        Ficha del módulo: lo que ve quien toca el ícono en la terminal.
+
+        El tono es informativo, no de error: quien lo toca no hizo nada mal, sólo
+        buscó la app donde no está. Y el bloque de soporte convierte un toque
+        accidental en el único momento en que alguien de tienda tiene a mano los
+        datos que soporte pide.
+    -->
+    <string name="module_info_title">Este módulo se usa desde HioPos</string>
+    <string name="module_info_body">No se abre por su cuenta. Para capturar los datos de facturación del cliente, abre la venta en HioPos y pulsa el botón de Cliente.</string>
+    <string name="module_info_support_label">Datos para soporte</string>
+    <!-- %1$s versión · %2$s apk_name (define el namespace de los Intents) · %3$s paquete -->
+    <string name="module_info_support">Versión %1$s\nMódulo %2$s\n%3$s</string>
+    <string name="module_info_close">Entendido</string>
+    <string name="module_info_open_driver">Abrir driver de QA (solo debug)</string>
+
+    <!-- Captura del documento en la pantalla del cajero -->
+    <string name="vendor_capture_title">Datos de facturación</string>
+    <string name="vendor_capture_subtitle">Ingresa el tipo y número de documento del cliente. Lo verá en su pantalla.</string>
+    <!-- Elección Empleado / cliente normal. Sólo aparece cuando HioPos trajo un
+         cliente marcado como Empleado; en cualquier otro caso el cajero no
+         decide el tipo. Si compra como empleado NO se le ofrece Koaj Lovers. -->
+    <!-- Tipo de cliente en el formulario del cajero: SOLO LECTURA. Le dice con
+         qué tipo se va a enviar el cliente, y de qué depende si todavía puede
+         cambiar. El cajero no lo elige. -->
+    <string name="vendor_customer_type_label">SE ENVÍA COMO</string>
+    <string name="vendor_customer_type_hint_pending">Pasa a VIP si el cliente acepta Koaj Lovers</string>
+    <string name="vendor_customer_type_hint_vip">Ya es Koaj Lover · no baja de VIP</string>
+    <string name="vendor_customer_type_hint_empleado">A los empleados no se les ofrece Koaj Lovers</string>
+    <string name="vendor_customer_type_hint_estandar">Sin Koaj Lovers</string>
+
+    <!-- Salida del flujo hacia el POS. Devuelve RESULT_CANCELED y, con
+         CanContinue=true en el behaviour, HioPos sigue la venta sin cliente. -->
+    <string name="vendor_btn_exit">Volver a HioPos</string>
+
+    <string name="vendor_capture_employee_label">ESTE CLIENTE ES EMPLEADO</string>
+    <string name="vendor_capture_employee_yes">Compra como empleado</string>
+    <string name="vendor_capture_employee_no">Compra como cliente normal</string>
+    <!-- Salida disponible desde el primer instante, sin teclear documento:
+         es justamente para el cliente que no lo quiere dar. -->
+    <string name="vendor_capture_cf">Facturar como Consumidor Final</string>
+
+    <!-- Espejo del cliente: SOLO LECTURA. El cliente no edita nada. -->
+    <string name="client_mirror_title">Tus datos</string>
+    <string name="client_mirror_subtitle">El cajero los está ingresando</string>
+    <string name="client_waiting_doc_title">Un momento</string>
+    <string name="client_waiting_doc_subtitle">El cajero está ingresando tu documento</string>
+    <string name="client_doc_placeholder">— — —</string>
+
+    <!-- Pantalla del vendedor (display principal) -->
+    <string name="vendor_mirror_label">Datos del cliente · sincronizados en vivo</string>
+    <string name="vendor_footer_hint">Completa los datos y pulsa Aceptar para asignar el cliente a la venta.</string>
+    <!-- Firma del equipo, en el pie de la pantalla del cajero. -->
+    <string name="vendor_credit">Creado por el área de Aplicaciones y Omnicanalidad</string>
+    <!-- `vendor_btn_cf` eliminado: lo reemplaza `vendor_capture_cf`, que dice
+         "Facturar como Consumidor Final" — el mismo nombre que usa el resto del
+         flujo y el que el cajero reconoce. -->
+
+    <string name="vendor_loading_title">El cliente está decidiendo</string>
+    <string name="vendor_loading_subtitle">La venta continúa cuando el cliente confirme en su pantalla.</string>
+
+    <!--
+        Pod notification premium centrado en la pantalla del vendor.
+        Se muestra mientras el cliente está decidiendo sobre Koaj Lovers.
+
+        El copy está calibrado para que el cajero entienda al instante:
+        la pelota está del lado del cliente, no necesita hacer nada, y la
+        venta avanza sola en cuanto el cliente confirme.
+    -->
+    <string name="vendor_pod_eyebrow">KOAJ LOVERS</string>
+    <string name="vendor_pod_title">Esperando confirmación de cliente</string>
+    <string name="vendor_pod_subtitle">El cliente está decidiendo en su pantalla.\nLa venta continúa automáticamente.</string>
+    <string name="vendor_pod_lock">SEGURO</string>
+    <!-- El cajero puede continuar sin inscribir; la aceptación corresponde al cliente. -->
+    <string name="vendor_pod_continue">Continuar sin inscripción</string>
+
+    <!-- Eyebrow del header del vendor — marca Koaj visible en cada vista -->
+    <string name="vendor_eyebrow">KOAJ · POS</string>
+
+    <!--
+        Overlay de "flow completado" — cuando el cliente ya aceptó Koaj o
+        declinó, la pantalla del vendor hace un beat con un check animado
+        antes de devolver el resultado al POS. Es el "le dimos cierre"
+        visual al trabajo del cajero.
+    -->
+    <string name="vendor_done_title_accepted">Cliente extraído</string>
+    <string name="vendor_done_subtitle_accepted">Datos confirmados y asignados a la venta</string>
+    <string name="vendor_done_title_declined">Cliente confirmado</string>
+    <string name="vendor_done_subtitle_declined">Venta continúa con los datos ingresados</string>
+    <string name="vendor_done_title_cf">Facturando como genérico</string>
+    <string name="vendor_done_subtitle_cf">Sin datos personales · consumidor final 222222222222</string>
+    <string name="vendor_back_to_document">Volver</string>
+    <string name="vendor_title_starting">Abriendo la pantalla del cliente…</string>
+    <string name="vendor_subtitle_starting">Un momento</string>
+    <string name="vendor_title_awaiting">Capturando datos</string>
+    <string name="vendor_subtitle_awaiting">Ingresa el documento del cliente en el campo de arriba</string>
+    <string name="vendor_title_validating">Validando con la DIAN…</string>
+    <string name="vendor_subtitle_validating">Consultando los datos fiscales oficiales</string>
+    <string name="vendor_title_filling">Rellenando datos del cliente</string>
+    <string name="vendor_subtitle_filling">Puedes corregirlos desde aquí · se sincroniza en vivo</string>
+<string name="vendor_title_loyalty">El cliente está decidiendo sobre Koaj Lovers</string>
+<string name="vendor_subtitle_loyalty">Esperando confirmación desde la pantalla del cliente</string>
+    <string name="vendor_title_cf">Facturando como Consumidor Final</string>
+    <string name="vendor_subtitle_cf">El cliente decidió no entregar sus datos</string>
+    <string name="vendor_title_done">Listo</string>
+    <string name="vendor_subtitle_done">Devolviendo el resultado al POS</string>
+
+    <!-- Insignias de escenario -->
+    <string name="vendor_badge_edit">EXISTENTE</string>
+    <string name="vendor_badge_dian">NUEVO · DIAN</string>
+    <string name="vendor_badge_manual">NUEVO · MANUAL</string>
+    <string name="vendor_badge_complete">DATOS INCOMPLETOS</string>
+    <string name="vendor_badge_cf">CONSUMIDOR FINAL</string>
+
+    <string name="vendor_cancelled">Cancelado por el vendedor</string>
+    <!-- vendor_cancel eliminado: el botón Cancelar del vendor ya no se muestra;
+         el back del sistema sigue funcionando como vía de salida. -->
+
+    <!-- Compuerta de decisión del vendedor -->
+    <string name="vendor_prompt_yes_create">Sí, crear cliente</string>
+    <string name="vendor_prompt_yes_complete">Sí, completar datos</string>
+    <!-- `vendor_prompt_no` eliminado: el Consumidor Final se movió a la captura
+         del documento (`vendor_capture_cf`). En la compuerta llegaba tarde,
+         cuando el cajero ya había teclado la cédula. -->
+
+
+    <!-- Cliente nuevo: el POS no mandó documento, lo teclea el cliente -->
+    <string name="vendor_prompt_create_title">Este cliente no está registrado. ¿Desea crearlo?</string>
+    <string name="vendor_prompt_create_subtitle">Validaremos el documento con la DIAN para crear el cliente.</string>
+
+    <!-- Cliente nuevo: el POS ya mandó documento, se consulta directo -->
+    <string name="vendor_prompt_create_doc_title">Este cliente no está registrado. ¿Desea crearlo?</string>
+    <string name="vendor_prompt_create_doc_subtitle">Se validará el documento %1$s con la DIAN.</string>
+
+    <!-- Botón "Nuevo cliente" del POS: el módulo no puede consultar el maestro -->
+    <string name="vendor_prompt_search_title">¿Ya buscaste al cliente con la lupa?</string>
+    <string name="vendor_prompt_search_subtitle">Si el cliente ya existe, HioPos no dejará crearlo de nuevo y se perderán los datos que llenes.</string>
+    <string name="vendor_prompt_search_continue">Continuar como cliente nuevo</string>
+    <string name="vendor_prompt_search_back">Volver a buscar</string>
+
+    <!-- Existe en HioPos pero le faltan datos para facturar -->
+    <string name="vendor_prompt_complete_title">A este cliente le faltan datos. ¿Completarlos?</string>
+    <string name="vendor_prompt_complete_subtitle">Ya está registrado en HioPos, pero no se puede facturar sin %1$s.</string>
+
+    <string name="vendor_title_gate">Esperando tu decisión</string>
+    <string name="vendor_subtitle_gate_create">El cliente no está registrado en HioPos</string>
+    <string name="vendor_subtitle_gate_complete">Registrado en HioPos, con datos incompletos</string>
+
+    <!-- Espera del cliente mientras el vendedor decide -->
+    <string name="state_waiting_vendor_title">Un momento, por favor</string>
+    <string name="state_waiting_vendor_subtitle">Estamos preparando tu registro</string>
+
+    <!-- Validación de campos obligatorios -->
+    <string name="validation_hint_prefix">Para continuar: %1$s</string>
+    <string name="validation_required_marker">*</string>
+
+    <!-- Comunidad Koaj Lovers · textos calcados del mockup aprobado por marca -->
+    <string name="koaj_brand">KOAJ</string>
+    <string name="koaj_eyebrow">ÚNETE A</string>
+    <!-- Se usa como contentDescription del corazón; el título en pantalla se
+         compone de dos líneas con estilos distintos (koaj_title_main/_lovers). -->
+    <string name="koaj_title">KOAJ LOVERS</string>
+    <string name="koaj_title_main">KOAJ</string>
+    <string name="koaj_title_lovers">LOVERS</string>
+    <string name="koaj_tagline_plain">Más que una comunidad,</string>
+    <string name="koaj_tagline_accent">un estilo de vida.</string>
+    <string name="koaj_subtitle">Sé parte de KOAJ LOVERS y disfruta de experiencias exclusivas diseñadas para ti.</string>
+
+    <string name="koaj_perks_title_plain">¿Qué obtienes por ser </string>
+    <string name="koaj_perks_title_accent">KOAJ LOVER</string>
+    <string name="koaj_perks_title_tail">?</string>
+
+    <string name="koaj_perk_events_title">EVENTOS EXCLUSIVOS</string>
+    <string name="koaj_perk_events_body">Accede a invitaciones especiales y vive experiencias únicas.</string>
+    <string name="koaj_perk_discounts_title">DESCUENTOS ESPECIALES</string>
+    <string name="koaj_perk_discounts_body">Disfruta beneficios y promociones exclusivas para miembros.</string>
+    <string name="koaj_perk_launch_title">LANZAMIENTOS EN PRIMICIA</string>
+    <string name="koaj_perk_launch_body">Sé el primero en conocer nuestras nuevas colecciones.</string>
+    <string name="koaj_perk_news_title">MANTENTE INFORMADO</string>
+    <string name="koaj_perk_news_body">Recibe noticias, novedades y todo sobre KOAJ directamente en tu correo.</string>
+
+    <string name="koaj_cta_headline">¡Haz parte de algo increíble!</string>
+    <string name="koaj_cta_sub">Estilo, comunidad y beneficios pensados para ti.</string>
+    <string name="koaj_accept">¡ACEPTO!</string>
+    <string name="koaj_accept_sub">QUIERO SER KOAJ LOVER</string>
+    <string name="koaj_skip">NO ACEPTO</string>
+    <string name="koaj_free_hint">Tu información estará segura con nosotros.</string>
+    <string name="koaj_autocontinue">Continuando en %1$d…</string>
+    <string name="koaj_welcome">¡Bienvenido a Koaj Lovers!</string>
+    <string name="koaj_welcome_subtitle">Tus descuentos ya están activos</string>
+
+    <!-- Errores devueltos al POS -->
+    <string name="error_invalid_intent">Intent inválido</string>
+    <string name="error_parse_xml">No se pudo interpretar el documento XML</string>
+
+    <!-- Selector de país del teléfono. El orden es el pedido:
+         Colombia por defecto, Ecuador, Costa Rica, luego Extranjeros. -->
+    <string name="phone_country_colombia">Colombia</string>
+    <string name="phone_country_ecuador">Ecuador</string>
+    <string name="phone_country_costarica">Costa Rica</string>
+    <string name="phone_country_extranjeros">Extranjeros</string>
+    <string name="phone_country_picker_title">Indicativo del país</string>
+</resources>

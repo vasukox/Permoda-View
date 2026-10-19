@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+        DOS sistemas visuales que coexisten a propósito:
+
+          1. **Trámite → navy enterprise** (bloque de abajo, tokens de ROL:
+             `bg_*`, `accent_*`, `text_*`, `border_*`, `focus_*`).
+             Cajero, captura, formulario, confirmación.
+
+          2. **Koaj Lovers → oro sobre negro** (bloque marcado NO TOCAR, tokens
+             `koaj_*`). Sólo `zone_loyalty` y sus 10 drawables.
+
+        ## Historia, para que nadie la deshaga por error
+
+        · magenta/violeta → oro (14-ago-2026, marca aprobó gold sobre negro).
+          En esa migración se borraron los azules legacy y este comentario decía
+          "si aparece azul o morado, es un bug". **Ya no aplica.**
+        · oro → navy en el trámite (19-ago-2026). El oro se quedó SOLO en Koaj
+          Lovers. El azul de ahora es una decisión, no un residuo.
+
+        Y no colisiona con el POS: HioPos en las terminales es oscuro con acentos
+        verdes y naranjas, no azul — verificado en captura del C9H. El "azul
+        corporativo del POS" que mencionan comentarios viejos ya no existe.
+
+        ## Por qué los nombres son roles y no colores
+
+        Dos re-skins en una semana. Los nombres viejos decían el color
+        (`koaj_accent_gold_strong`), así que cambiar la paleta obligaba a elegir
+        entre renombrar 236 referencias o dejar tokens llamados "gold" pintando
+        azul. Con nombres de rol, el tercer re-skin es cambiar valores y nada más.
+        `PaletteContrastTest` verifica que ese tercer re-skin no rompa el
+        contraste, que es como se colaron los 2.2:1 del oro.
+    -->
+    <color name="surface_card">#FFFFFFFF</color>
+
+    <!-- ==================================================================== -->
+    <!-- SISTEMA ENTERPRISE · navy institucional                              -->
+    <!--                                                                      -->
+    <!-- Paleta del TRÁMITE: pantalla del cajero, captura, formulario y        -->
+    <!-- confirmación. Reemplaza el sistema oro/cream (19-ago-2026).           -->
+    <!--                                                                      -->
+    <!-- ## Los nombres son ROLES, no colores                                 -->
+    <!--                                                                      -->
+    <!-- Es el segundo re-skin de este proyecto (magenta → oro → navy) y va a  -->
+    <!-- haber un tercero. Los nombres viejos decían el color                  -->
+    <!-- (`koaj_accent_gold_strong`, `koaj_bg_cream`), así que cambiar la       -->
+    <!-- paleta obligaba a elegir entre renombrar 236 referencias o dejar 40   -->
+    <!-- tokens llamados "gold" apuntando a un azul. Con nombres de rol el     -->
+    <!-- tercer re-skin es cambiar los valores de este bloque y nada más.      -->
+    <!--                                                                      -->
+    <!-- ## Por qué navy de relleno y no un azul medio                         -->
+    <!--                                                                      -->
+    <!-- El CTA oro medía 2.2:1 contra el fondo cream y las etiquetas de los   -->
+    <!-- campos 2.4:1 sobre tarjeta blanca — texto por debajo del mínimo       -->
+    <!-- legible que estuvo en producción sin que nadie lo notara. La regla    -->
+    <!-- que sale de eso: el relleno del primario va OSCURO. Un azul "suave    -->
+    <!-- premium" repite el error.                                             -->
+    <!--                                                                      -->
+    <!-- Medido (`PaletteContrastTest` lo verifica en cada build):             -->
+    <!--   texto sobre CTA        11.7:1                                       -->
+    <!--   CTA contra el fondo    10.7:1  (antes 2.2)                          -->
+    <!--   etiqueta sobre blanco   6.5:1  (antes 2.4)                          -->
+    <!--   texto sobre el fondo   15.8:1                                       -->
+    <!--                                                                      -->
+    <!-- ## Los neutros son FRÍOS                                             -->
+    <!--                                                                      -->
+    <!-- El cream (#FAF6EE) y el ink cálido (#1C1B19) salieron: un cream       -->
+    <!-- debajo de un navy se lee barato. Los grises llevan azul.              -->
+    <!-- ==================================================================== -->
+
+    <!-- Fondos y superficies -->
+    <color name="bg_app">#FFF2F5F8</color>          <!-- fondo de pantalla -->
+    <color name="bg_surface">#FFFFFFFF</color>      <!-- tarjetas sobre el fondo -->
+    <color name="bg_surface_alt">#FFEDF1F6</color>  <!-- secciones secundarias -->
+    <color name="scrim">#990B0B12</color>           <!-- oscurecido sobre tarjetas -->
+
+    <!-- Primario: relleno de CTA y bordes fuertes -->
+    <color name="accent_primary">#FF123A5F</color>
+    <color name="accent_primary_pressed">#FF1B4E7D</color>
+    <color name="accent_primary_disabled">#FFB9C3CE</color>
+
+    <!-- Secundario: etiquetas, eyebrows, focus, progreso. Tiene que llegar a
+         4.5:1 sobre blanco porque se usa como TEXTO de 11sp. -->
+    <color name="accent_secondary">#FF2F6096</color>
+    <color name="accent_secondary_soft">#FF7FA3C6</color>
+    <color name="accent_secondary_pale">#FFE4EDF6</color>
+    <color name="accent_tint">#222F6096</color>
+
+    <!-- Texto -->
+    <color name="text_primary">#FF0E1C29</color>
+    <color name="text_secondary">#FF5B6B7A</color>
+    <color name="text_muted">#FF94A1AE</color>
+    <color name="text_on_primary">#FFFFFFFF</color>
+
+    <!-- Bordes -->
+    <color name="border_default">#FFDCE3EB</color>
+    <color name="border_accent">#FF7FA3C6</color>
+    <color name="border_accent_strong">#FF2F6096</color>
+    <color name="border_hairline">#FFE7ECF2</color>
+
+    <!-- Focus de los campos. Reemplaza el azul de sistema de Android igual que
+         antes lo hacía el gold; ahora coincide con el acento. -->
+    <color name="focus_accent">#FF2F6096</color>
+    <color name="focus_accent_soft">#FF7FA3C6</color>
+    <color name="focus_accent_tint">#332F6096</color>
+    <color name="focus_accent_pale">#FFE4EDF6</color>
+
+    <!--
+        Sistema blanco + oro Koaj · el "salto" de diseño.
+
+        Aplica la paleta de marca Koaj (gold, tan, cream, ink) sobre base
+        blanca, en vez del azul corporativo del POS. Es el sistema de LAS
+        DOS pantallas de producto: la del vendedor y la del cliente.
+
+        La única zona que se sale es `zone_loyalty` (Koaj Lovers), que es
+        oscura a propósito. Ese contraste entre el claro del trámite y el
+        oscuro de la invitación es lo que hace que las dos pantallas se lean
+        como una sola experiencia con dos momentos, y no como dos apps.
+
+        Convenciones:
+          · bg_*         → fondos de pantalla / secciones
+          · surface_*    → superficies de tarjetas (sobre el fondo)
+          · accent_gold* → CTAs primarios, eyebrows, bordes destacados
+          · text_*       → escala tipográfica sobre fondo claro
+          · border_*     → separadores y hairlines
+
+        Un solo acento (gold). Si hace falta jerarquía por debajo del CTA
+        primario, se baja a outline ink — no se introduce un segundo color.
+    -->
+    <!-- Fondos -->
+    <color name="koaj_bg_cream">#FFFAF6EE</color>       <!-- fondo principal, cream muy suave -->
+    <color name="koaj_bg_white">#FFFFFFFF</color>       <!-- fondo de cards elevados -->
+    <color name="koaj_bg_warm">#FFF7F4EF</color>        <!-- fondo de secciones secundarias -->
+    <color name="koaj_bg_dark_overlay">#990B0B0B</color> <!-- scrim sobre cards al pulsar -->
+
+    <!-- Acento oro (Koaj gold) -->
+    <color name="koaj_accent_gold_strong">#FFC9A227</color>
+    <color name="koaj_accent_gold_soft">#FFD9B877</color>
+    <color name="koaj_accent_gold_pale">#FFF7EBC9</color>  <!-- hover/pressed background -->
+    <color name="koaj_accent_gold_tint">#22C9A227</color>  <!-- glows, tints -->
+
+    <!--
+        Sin acento azul. `koaj_accent_blue_*` existió como "CTA secundario"
+        durante la transición; el vendedor ya lo cambió por outline ink
+        (13:1 de contraste contra los 4.5:1 del azul) y ahora el cliente
+        también. Un sistema con un solo acento — gold — es más fácil de
+        mantener coherente que uno con dos.
+    -->
+
+    <!-- Texto sobre fondo claro -->
+    <color name="koaj_text_ink">#FF1C1B19</color>          <!-- titles, valores -->
+    <color name="koaj_text_ink_soft">#FF6E6A63</color>     <!-- labels, hints -->
+    <color name="koaj_text_ink_muted">#FFA6A29C</color>    <!-- placeholders -->
+    <color name="koaj_text_on_gold">#FF1C1B19</color>      <!-- texto sobre botones gold -->
+    <color name="koaj_text_on_dark">#FFFFFFFF</color>      <!-- texto sobre fondo oscuro (pod, header) -->
+
+    <!--
+        Estados del CTA primario ink (`bg_koaj_btn_primary_ink`).
+
+        `koaj_ink_pressed` aclara en vez de oscurecer: sobre un botón que ya es
+        casi negro, oscurecer no se percibe.
+
+        `koaj_ink_disabled` tiene que leerse como "todavía no", no como un botón
+        roto — es el estado del Aceptar mientras faltan campos, que el cajero ve
+        la mayor parte del tiempo.
+    -->
+    <color name="koaj_ink_pressed">#FF2A2926</color>
+    <color name="koaj_ink_disabled">#FFBFBAB2</color>
+
+    <!-- Bordes y hairlines -->
+    <color name="koaj_border_default">#FFE7E0D6</color>    <!-- borde card neutro -->
+    <color name="koaj_border_gold">#FFD9B877</color>       <!-- borde card destacado -->
+    <color name="koaj_border_gold_strong">#FFC9A227</color><!-- borde botón gold -->
+    <color name="koaj_border_hairline">#FFEFE9DD</color>   <!-- divisor interno -->
+
+    <!-- Estados -->
+    <color name="koaj_state_success">#FF10B981</color>
+    <color name="koaj_state_warning">#FFF59E0B</color>
+    <color name="koaj_state_error">#FFDC2626</color>
+    <color name="koaj_state_invalid">#FFDC2626</color>
+
+    <!-- Sombras suaves (8% negro, 4% negro) -->
+    <color name="koaj_shadow_strong">#14000000</color>
+    <color name="koaj_shadow_soft">#0A000000</color>
+
+    <!--
+        Sistema de feedback premium: focus, done, particles.
+
+        `koaj_focus_*` reemplazan el azul de sistema que Android pone por
+        defecto en EditText (cursor, selección, handle). El azul corporativo
+        del POS rompe la paleta Koaj — el gold es de marca.
+
+        `koaj_done_*` son los colores del overlay de "flow completado":
+        verde Koaj (no el state_success genérico) para que se lea como un
+        "listo" cálido, y el verde oscuro para texto sobre fondo claro.
+    -->
+    <color name="koaj_focus_gold">#FFC9A227</color>
+    <color name="koaj_focus_gold_soft">#FFD9B877</color>
+    <color name="koaj_focus_gold_tint">#33C9A227</color>
+    <color name="koaj_focus_gold_pale">#FFF7EBC9</color>
+
+    <!-- Done / completion -->
+    <color name="koaj_done_primary">#FF10B981</color>      <!-- verde Koaj -->
+    <color name="koaj_done_primary_dark">#FF047857</color> <!-- hover/pressed -->
+    <color name="koaj_done_primary_soft">#FFD1FAE5</color> <!-- pale bg -->
+    <color name="koaj_done_text_on_dark">#FFFFFFFF</color>
+
+    <!--
+        Confetti del overlay "flow completado" (pantalla del cajero).
+
+        Sigue la paleta del trámite, no la de marca: ese overlay vive en el
+        sistema enterprise. Los nombres son de rol para que el próximo re-skin no
+        tenga que tocar los cuatro drawables `bg_done_particle_*`.
+    -->
+    <color name="particle_accent">#FF2F6096</color>
+    <color name="particle_accent_soft">#FF7FA3C6</color>
+    <color name="particle_primary">#FF123A5F</color>
+    <color name="particle_surface">#FFEDF1F6</color>
+
+    <!--
+        Texto sobre fondo oscuro. `text_inverse` sigue vivo en el sistema
+        Koaj (wordmark, hero, pod), no es legado.
+
+        `text_strong` y `text_label` quedan sólo para el driver de QA — en
+        producto sus equivalentes son `koaj_text_ink` y `koaj_text_ink_soft`.
+    -->
+    <color name="text_inverse">#FFFFFFFF</color>
+    <color name="text_inverse_muted">#CCFFFFFF</color>
+    <color name="text_strong">#FF0F172A</color>
+    <color name="text_label">#FF64748B</color>
+
+    <!--
+        Los colores de estado del sistema viejo se eliminaron:
+
+          · state_confirmed_bg  → el cierre ya no es una pantalla verde a
+                                  sangre; es cream con el check verde
+                                  (`koaj_done_primary`).
+          · state_rejected_bg   → `koaj_bg_warm`.
+          · state_error         → `koaj_state_error`.
+          · state_not_registered / state_unverified → vivían sólo en la
+                                  pantalla intermedia de la DIAN, eliminada.
+          · field_invalid       → `koaj_state_invalid`.
+          · reject_red(_pressed)→ nunca hubo un botón rojo en el diseño
+                                  aprobado; el "no acepto" es discreto, no
+                                  alarmante.
+    -->
+
+    <!-- ==================================================================== -->
+    <!-- 🚫 NO TOCAR · paleta de marca KOAJ                                    -->
+    <!--                                                                      -->
+    <!-- Estos tokens los usa EXCLUSIVAMENTE `zone_loyalty` (la pantalla de     -->
+    <!-- Koaj Lovers) y sus drawables. Verificado: la zona no referencia ni un  -->
+    <!-- solo token del sistema enterprise.                                    -->
+    <!--                                                                      -->
+    <!-- El re-skin a navy del 19-ago-2026 dejó esta pantalla **intacta por     -->
+    <!-- decisión de negocio**: es el momento de marca, el oro sobre negro está -->
+    <!-- aprobado por marca, y el hero (`koaj_hero.png`, 1.4 MB) lleva el oro   -->
+    <!-- en los píxeles, no en un token.                                       -->
+    <!--                                                                      -->
+    <!-- Que el trámite sea azul sobrio y la invitación oro sobre negro NO es   -->
+    <!-- una inconsistencia: es el contraste que el diseño busca para que las   -->
+    <!-- dos pantallas se lean como una experiencia con dos momentos.           -->
+    <!--                                                                      -->
+    <!-- ⚠️ Si algún día hay que cambiar esta pantalla, es una conversación con -->
+    <!-- marca, no un cambio de token.                                        -->
+    <!-- ==================================================================== -->
+    <color name="koaj_black">#FF0B0B0B</color>
+    <color name="koaj_gold">#FFC9A227</color>
+    <color name="koaj_gold_soft">#FFD9B877</color>
+    <color name="koaj_tan">#FFE3D3BE</color>
+    <color name="koaj_cream">#FFF7F4EF</color>
+    <color name="koaj_card">#FFFFFFFF</color>
+    <color name="koaj_card_border">#FFE7E0D6</color>
+    <color name="koaj_ink">#FF1C1B19</color>
+    <color name="koaj_ink_soft">#FF6E6A63</color>
+    <color name="koaj_btn_text">#FFFFFFFF</color>
+    <color name="koaj_text_muted">#B3FFFFFF</color>
+
+    <!--
+        La paleta provisional magenta/violeta (`koaj_magenta`, `koaj_violet`,
+        `koaj_deep`, `koaj_btn`, `koaj_btn_pressed`) se eliminó junto con
+        `bg_koaj_gradient`, el último drawable que la usaba. La marca aprobó
+        gold sobre negro; no hay ningún camino de vuelta al morado.
+    -->
+</resources>

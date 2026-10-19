@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Candado del pie: "Tu información estará segura con nosotros." -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="14dp"
+    android:height="14dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="@color/koaj_ink_soft">
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,2a4.5,4.5 0 0 1 4.5,4.5V9H17a2,2 0 0 1 2,2v8a2,2 0 0 1 -2,2H7a2,2 0 0 1 -2,-2v-8a2,2 0 0 1 2,-2h0.5V6.5A4.5,4.5 0 0 1 12,2zM12,4a2.5,2.5 0 0 0 -2.5,2.5V9h5V6.5A2.5,2.5 0 0 0 12,4zM7,11v8h10v-8z" />
+</vector>

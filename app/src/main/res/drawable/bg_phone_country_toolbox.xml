@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Toolbox de selección de país del teléfono.
+    Rectángulo con bordes redondeados en el lado izquierdo (los de la
+    derecha los redondea el EditText hermano). Mismo borde gold que
+    `bg_koaj_edit_field`, para que toolbox y campo se lean como una sola
+    pieza partida en dos y no como dos controles distintos pegados.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/bg_surface_alt" />
+    <stroke
+        android:width="1.5dp"
+        android:color="@color/accent_secondary_soft" />
+    <corners
+        android:topLeftRadius="12dp"
+        android:bottomLeftRadius="12dp"
+        android:topRightRadius="0dp"
+        android:bottomRightRadius="0dp" />
+</shape>

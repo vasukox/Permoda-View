@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Pod notification XL premium · Koaj Lovers · "Esperando confirmación".
+
+    Rediseño "salto premium": card 560dp (era 460dp), corazón 120dp (era
+    88dp), cinco anillos pulsantes (eran 3) y partículas gold flotando
+    alrededor del corazón. La estructura interna respira con más padding
+    y el botón Continuar crece a 62dp con tipografía más grande.
+
+    Jerarquía visual:
+      · Eyebrow "KOAJ LOVERS" en gold_soft con tracking alto
+      · Corazón central 120dp + halo 220dp + 5 anillos pulsantes
+      · Partículas gold flotantes alrededor (8 bolitas en órbita)
+      · Título y subtítulo blancos con tipografía XL
+      · Chip "SEGURO" verde salvia
+      · Botón "Continuar" premium con borde gold fuerte
+
+    Animación: PodAnimator desde VendorScreen.kt.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/vendor_loading_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_pod_backdrop"
+    android:clickable="false"
+    android:focusable="false"
+    android:visibility="gone"
+    tools:visibility="visible">
+
+    <!--
+        Card XL centrado. LinearLayout con `layout_gravity="center"` y
+        background premium. Es a la vez el contenedor visual y el target
+        de animación del PodAnimator.
+    -->
+    <LinearLayout
+        android:id="@+id/vendor_pod_card"
+        android:layout_width="@dimen/pod_card_width"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:background="@drawable/bg_pod_card"
+        android:clickable="false"
+        android:focusable="false"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/pod_card_padding_h"
+        android:paddingVertical="@dimen/pod_card_padding_v">
+
+        <!--
+            Eyebrow "KOAJ LOVERS". Tracking alto y gold_soft para que se
+            lea como una marca, no como un título más. Mismo registro que
+            el wordmark del cliente.
+        -->
+        <TextView
+            android:id="@+id/vendor_pod_eyebrow"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-medium"
+            android:letterSpacing="0.38"
+            android:text="@string/vendor_pod_eyebrow"
+            android:textAllCaps="true"
+            android:textColor="@color/koaj_gold_soft"
+            android:textSize="@dimen/pod_eyebrow_text"
+            android:textStyle="bold" />
+
+        <!--
+            Stage del corazón: 5 anillos pulsantes apilados detrás del
+            corazón + halo dorado + corazón blanco. Las partículas gold
+            se posicionan alrededor como órbita.
+        -->
+        <FrameLayout
+            android:layout_width="@dimen/pod_heart_size"
+            android:layout_height="@dimen/pod_heart_size"
+            android:layout_marginTop="26dp">
+
+            <!-- Anillos pulsantes (5, escalonados) -->
+            <View
+                android:id="@+id/vendor_pod_ring_1"
+                android:layout_width="@dimen/pod_ring_size"
+                android:layout_height="@dimen/pod_ring_size"
+                android:layout_gravity="center"
+                android:alpha="0"
+                android:background="@drawable/bg_pod_ring" />
+
+            <View
+                android:id="@+id/vendor_pod_ring_2"
+                android:layout_width="@dimen/pod_ring_size"
+                android:layout_height="@dimen/pod_ring_size"
+                android:layout_gravity="center"
+                android:alpha="0"
+                android:background="@drawable/bg_pod_ring" />
+
+            <View
+                android:id="@+id/vendor_pod_ring_3"
+                android:layout_width="@dimen/pod_ring_size"
+                android:layout_height="@dimen/pod_ring_size"
+                android:layout_gravity="center"
+                android:alpha="0"
+                android:background="@drawable/bg_pod_ring" />
+
+            <View
+                android:id="@+id/vendor_pod_ring_4"
+                android:layout_width="@dimen/pod_ring_size"
+                android:layout_height="@dimen/pod_ring_size"
+                android:layout_gravity="center"
+                android:alpha="0"
+                android:background="@drawable/bg_pod_ring" />
+
+            <View
+                android:id="@+id/vendor_pod_ring_5"
+                android:layout_width="@dimen/pod_ring_size"
+                android:layout_height="@dimen/pod_ring_size"
+                android:layout_gravity="center"
+                android:alpha="0"
+                android:background="@drawable/bg_pod_ring" />
+
+            <!-- Halo dorado detrás del corazón: respira 1.0 → 1.18 → 1.0 -->
+            <View
+                android:id="@+id/vendor_pod_glow"
+                android:layout_width="@dimen/pod_glow_size"
+                android:layout_height="@dimen/pod_glow_size"
+                android:layout_gravity="center"
+                android:alpha="0.7"
+                android:background="@drawable/bg_pod_glow" />
+
+            <!--
+                Corazón blanco XL: 44dp (era 32dp). Más grande para que
+                domine visualmente el centro del card.
+            -->
+            <ImageView
+                android:id="@+id/vendor_pod_heart"
+                android:layout_width="@dimen/pod_heart_inner"
+                android:layout_height="@dimen/pod_heart_inner"
+                android:layout_gravity="center"
+                android:contentDescription="@string/vendor_loading_title"
+                android:src="@drawable/ic_heart_white" />
+        </FrameLayout>
+
+        <!--
+            Título principal XL. Sans-medium bold, blanco puro: el
+            contraste sobre el negro del card es absoluto, no hay
+            discusión de qué dice.
+        -->
+        <TextView
+            android:id="@+id/vendor_pod_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="26dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:text="@string/vendor_pod_title"
+            android:textColor="@color/text_inverse"
+            android:textSize="@dimen/pod_title_text"
+            android:textStyle="bold" />
+
+        <!--
+            Subtítulo. Tono tranquilizador: el cajero tiene que entender
+            que la venta avanza sola, no que algo está fallando.
+        -->
+        <TextView
+            android:id="@+id/vendor_pod_subtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:alpha="0.82"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:text="@string/vendor_pod_subtitle"
+            android:textColor="@color/text_inverse"
+            android:textSize="@dimen/pod_subtitle_text" />
+
+        <!--
+            Chip "SEGURO" con candado dorado. Cierra el card con una nota
+            de confianza — el cliente está decidiendo pero sus datos
+            están protegidos.
+        -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_pod_lock_chip"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="7dp">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_koaj_lock"
+                app:tint="@color/koaj_gold_soft" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="7dp"
+                android:fontFamily="sans-serif-medium"
+                android:letterSpacing="0.22"
+                android:text="@string/vendor_pod_lock"
+                android:textAllCaps="true"
+                android:textColor="@color/koaj_gold_soft"
+                android:textSize="@dimen/pod_lock_text"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!--
+            Botón "Continuar" XL premium. Gold sólido + borde gold fuerte +
+            sombra fuerte. Es el CTA principal del pod, no un botón
+            secundario — un override del cajero que vale la pena醒目.
+        -->
+        <Button
+            android:id="@+id/vendor_pod_continue"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/pod_btn_height"
+            android:layout_marginTop="22dp"
+            android:background="@drawable/bg_pod_btn_continue"
+            android:fontFamily="sans-serif-medium"
+            android:stateListAnimator="@null"
+            android:text="@string/vendor_pod_continue"
+            android:textAllCaps="false"
+            android:textColor="@color/accent_primary"
+            android:textSize="@dimen/pod_btn_text"
+            android:textStyle="bold" />
+    </LinearLayout>
+</FrameLayout>

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Icono de "ocultar teclado" (teclado con flecha hacia abajo).
+    Vector blanco de 24dp.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="#FFFFFF">
+
+    <!-- Teclado (rectángulo redondeado) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M20,5H4C2.9,5 2,5.9 2,7v10c0,1.1 0.9,2 2,2h16c1.1,0 2,-0.9 2,-2V7C22,5.9 21.1,5 20,5zM20,17H4V7h16V17z" />
+
+    <!-- Flecha hacia abajo (▼) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M12,15.5l-4,-4h8L12,15.5z" />
+
+    <!-- Líneas del teclado -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,9h2v2H6zM10,9h2v2h-2zM14,9h2v2h-2zM18,9h-2v2h2zM6,12h2v2H6zM10,12h2v2h-2zM14,12h2v2h-2z" />
+</vector>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Fondo del hero de Koaj Lovers.
+
+    `koaj_hero.png` es un recorte con transparencia (los dos modelos sin fondo),
+    así que el fondo lo pinta este degradado: negro cálido con una luz suave
+    arriba a la derecha, justo detrás de los modelos, como en el mockup.
+
+    Ese resplandor no es decoración: separa el pelo oscuro del hombre del fondo
+    negro. Sin él la silueta se pierde y el recorte parece un error de imagen.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="0"
+                android:endColor="#FF1C1611"
+                android:startColor="#FF0B0B0B"
+                android:type="linear" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:centerX="0.72"
+                android:centerY="0.3"
+                android:endColor="#00000000"
+                android:gradientRadius="360"
+                android:startColor="#4DD9B877"
+                android:type="radial" />
+        </shape>
+    </item>
+</layer-list>

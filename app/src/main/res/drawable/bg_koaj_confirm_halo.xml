@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Halo verde detrás del check de "Datos confirmados" en la pantalla del
+    cliente.
+
+    Es el mismo recurso visual que `bg_done_halo` usa en el overlay del
+    vendedor: cuando el cliente ve su ✓ verde sobre cream, el cajero está
+    viendo exactamente el mismo verde sobre el mismo cream. Las dos
+    pantallas cierran el flujo con la misma nota.
+
+    No se reutiliza `bg_avatar_glow` (cian #22D3EE) a propósito: ese sigue
+    siendo del driver de QA, que conserva la paleta azul.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="150dp"
+        android:centerX="0.5"
+        android:centerY="0.5"
+        android:startColor="#5510B981"
+        android:endColor="#0010B981" />
+</shape>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Halo dorado detrás del corazón del pod.
+
+    Radial centrado, dorado (mismo gold_soft que la marca Koaj) con alfa
+    decreciente: el centro es casi opaco, los bordes se diluyen al fondo
+    negro del card. Sirve de "respiradero" — el animator escala este view
+    1.0 → 1.18 → 1.0 en loop lento para que el corazón parezca latir.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <gradient
+        android:type="radial"
+        android:gradientRadius="160dp"
+        android:centerX="0.5"
+        android:centerY="0.5"
+        android:startColor="#7AD9B877"
+        android:endColor="#00D9B877" />
+</shape>

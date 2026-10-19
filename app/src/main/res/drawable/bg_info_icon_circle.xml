@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Círculo que enmarca el ícono de la ficha del módulo.
+
+    Existe en vez de reutilizar `bg_koaj_icon_circle` porque ese es un asset de
+    **Koaj Lovers**: lo usa el estilo de los marcos de ícono de las tarjetas de
+    beneficio (themes.xml), va en beige de marca y no se toca. Reutilizarlo dejaba
+    un círculo beige en medio del sistema navy — que es exactamente cómo se veía
+    en la primera captura de la terminal.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/accent_secondary_pale" />
+    <stroke
+        android:width="1.5dp"
+        android:color="@color/accent_secondary_soft" />
+</shape>

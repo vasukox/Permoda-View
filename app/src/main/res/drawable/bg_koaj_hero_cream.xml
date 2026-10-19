@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Fondo del driver de QA.
+
+    Antes: gradiente azul corporativo (#FF1E3A8A → #FF07153C) que se leía
+    como morado en el fondo del bloque de escenarios. 14-08-2026:
+    migrado al sistema cream → tan del vendor (`bg_koaj_hero_dark`-like)
+    para coherencia visual entre todas las activities.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:type="linear"
+        android:angle="180"
+        android:startColor="@color/bg_app"
+        android:centerColor="@color/bg_surface_alt"
+        android:endColor="@color/bg_app" />
+</shape>

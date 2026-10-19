@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Anillo verde del check · outline circular que se "dibuja" al entrar.
+
+    El CompletionAnimator hace un clip horizontal sobre este view para
+    que parezca que el círculo se está trazando con un lápiz. Cuando
+    termina, queda visible al 30% como remate del check.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <stroke
+        android:width="3dp"
+        android:color="@color/koaj_done_primary" />
+    <solid android:color="#00000000" />
+</shape>

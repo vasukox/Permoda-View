@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Card premium del overlay de completion.
+
+    Misma silueta que el pod pero con accent verde Koaj en vez de dorado:
+    · Fondo cream + radial verde arriba a la derecha (el mismo "respiro"
+      visual del pod pero en verde para decir "listo")
+    · Borde hairline gold 1.2dp para mantener la unidad con el resto de
+      cards de la app
+    · Sombra fuerte para elevarlo del backdrop
+
+    Cuando el cliente aceptó Koaj Lovers se usa la versión verde; cuando
+    declinó también (es un cierre positivo del flujo, no un rechazo del
+    cliente — declinar es una decisión válida).
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="32dp" />
+            <solid android:color="@color/bg_surface" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="32dp" />
+            <gradient
+                android:centerX="0.78"
+                android:centerY="0.18"
+                android:endColor="#00FFFFFF"
+                android:gradientRadius="380"
+                android:startColor="#3306D6A0"
+                android:type="radial" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="32dp" />
+            <stroke android:width="1.2dp" android:color="@color/border_accent" />
+            <solid android:color="#00FFFFFF" />
+        </shape>
+    </item>
+</layer-list>

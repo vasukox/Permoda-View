@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Cursor gold para EditText del vendor.
+
+    El default de Android usa `colorAccent` para el cursor, pero el
+    Material shape que trae predefinido tiene un grosor y un padding que
+    lo hacen ver "raro" sobre cream. Este drawable custom es más grueso
+    (3dp) y dorado — se ve como un lápiz activo, no como una línea del
+    sistema.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/focus_accent" />
+    <size android:width="3dp" />
+</shape>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Check vector con path data optimizado para stroke animation.
+
+    El path es una sola polyline (no un fill) — CompletionAnimator hace
+    `trimPathStart 1.0 → 0.0` para que el check se "dibuje" desde el
+    inicio hasta el final. Vector tintado en koaj_done_primary.
+
+    Mismo path que Material Icons "check" pero escalado a viewport 24
+    para que el stroke animation calce exacto.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:strokeColor="@color/koaj_done_primary"
+        android:strokeWidth="3.5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:fillColor="#00000000"
+        android:pathData="M5,12 L10,17 L19,7" />
+</vector>

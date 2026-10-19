@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    "Continuar" del pod que ve el cajero mientras el cliente decide.
+
+    ## Este botón vive sobre fondo OSCURO, así que la regla se invierte
+
+    En el resto del trámite el primario es navy sólido porque el fondo es claro:
+    lo que hay que maximizar es la separación botón/fondo. Acá el pod es oscuro,
+    y un navy sobre oscuro da menos de 4:1 — el mismo error que el oro sobre
+    cream, en espejo.
+
+    Por eso el relleno es **blanco** con el texto en navy: es lo que más se
+    separa de un fondo oscuro (≈18:1) y de paso hace obvio dónde tocar. Antes era
+    oro sólido con texto oro, que fue justo lo que se reportó como ilegible.
+
+    El press oscurece a `bg_surface_alt` en vez de aclarar, porque partiendo de
+    blanco no hay a dónde aclarar.
+
+    ⚠️ Si algún día el pod deja de ser oscuro, este drawable tiene que volver al
+    primario navy como el resto.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/bg_surface_alt" />
+            <stroke android:width="2dp" android:color="@color/accent_secondary_soft" />
+            <corners android:radius="16dp" />
+        </shape>
+    </item>
+    <item>
+        <layer-list>
+            <item android:left="0dp" android:top="2dp" android:right="0dp" android:bottom="4dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/koaj_shadow_strong" />
+                    <corners android:radius="16dp" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/bg_surface" />
+                    <stroke android:width="2dp" android:color="@color/accent_secondary_soft" />
+                    <corners android:radius="16dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

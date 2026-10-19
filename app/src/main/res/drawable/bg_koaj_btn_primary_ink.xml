@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    CTA primario del cajero — ink sólido con filo gold.
+
+    ## Por qué no es gold relleno como antes
+
+    `bg_koaj_btn_gold` tiene el texto ink sobre gold, que da 7.3:1 y cumple de
+    sobra. El problema medido no era el texto: era el **botón contra el fondo**.
+    Sobre el cream de la pantalla (#FAF6EE) el gold relleno queda en **2.4:1**, y
+    un CTA que no se separa de su superficie se lee lavado por más que el texto
+    dentro contraste. Con ink relleno la separación sube a **15.9:1** y el texto
+    blanco a 17.5:1.
+
+    ## El gold no se pierde, cambia de rol
+
+    Pasa de relleno a filo (1.5dp) y a color del press. Eso respeta la regla del
+    sistema —un solo acento— y de paso empareja este botón con el pod de Koaj
+    Lovers, que ya es oscuro con oro: las dos pantallas siguen leyéndose como una.
+
+    ## Press
+
+    Aclara el relleno a #2A2926 y engrosa el filo, en vez de bajar a negro. Sobre
+    un botón que ya es casi negro, oscurecer no se percibe; aclarar sí.
+
+    Radio 14dp y sombra, igual que el gold, para que el cambio sea de color y no
+    de forma.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <layer-list>
+            <item android:left="0dp" android:top="2dp" android:right="0dp" android:bottom="1dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/koaj_shadow_soft" />
+                    <corners android:radius="14dp" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/accent_primary_pressed" />
+                    <stroke android:width="2dp" android:color="@color/accent_secondary" />
+                    <corners android:radius="14dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <!--
+        Deshabilitado: el botón Aceptar arranca así hasta que los cinco campos
+        estén completos, y tiene que leerse como "todavía no", no como un botón
+        roto. Ink desaturado sin filo gold — el oro es señal de que está listo.
+    -->
+    <item android:state_enabled="false">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/accent_primary_disabled" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+    <item>
+        <layer-list>
+            <item android:left="0dp" android:top="2dp" android:right="0dp" android:bottom="4dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/koaj_shadow_strong" />
+                    <corners android:radius="14dp" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <!-- El relleno es el PRIMARIO (navy), no el color de texto.
+                         El barrido de tokens lo dejó apuntando a `text_primary`
+                         porque en la paleta anterior el relleno y el texto eran
+                         el mismo ink: acá dejan de serlo. -->
+                    <solid android:color="@color/accent_primary" />
+                    <stroke android:width="2dp" android:color="@color/border_accent_strong" />
+                    <corners android:radius="14dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

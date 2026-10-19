@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Card premium blanco con borde dorado.
+
+    Sustituye al `bg_white_card_premium` original (blanco con borde negro
+    10% alfa) en las superficies destacadas: el prompt, el mirror, el capture.
+    Borde gold 1.2dp + radio 22dp + sombra fuerte: se lee como "tarjeta
+    elevada de marca", no como una simple caja blanca.
+
+    El cornerRadius 22dp es el sweet spot del sistema — más que un card
+    común (16), menos que un chip/pill (40). El padding interno lo define
+    cada layout para no acoplar este drawable a una geometría fija.
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:left="0dp"
+        android:top="2dp"
+        android:right="0dp"
+        android:bottom="4dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/koaj_shadow_strong" />
+            <corners android:radius="22dp" />
+        </shape>
+    </item>
+    <item
+        android:left="0dp"
+        android:top="0dp"
+        android:right="0dp"
+        android:bottom="2dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/bg_surface" />
+            <stroke
+                android:width="1.2dp"
+                android:color="@color/border_accent" />
+            <corners android:radius="22dp" />
+        </shape>
+    </item>
+</layer-list>

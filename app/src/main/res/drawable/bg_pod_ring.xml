@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Anillo pulsante del pod.
+
+    Aro hueco con stroke dorado translúcido. El animator hace tres de estos
+    en escalonado (delay 0/600/1200 ms): cada uno crece de scale 0.6 a 1.6
+    y se desvanece de alfa 0.6 a 0 mientras rota lento, produciendo ondas
+    concéntricas que emanan del corazón. Misma paleta que el glow para
+    que se lean como una sola cosa.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <stroke
+        android:width="2dp"
+        android:color="#A6D9B877" />
+    <solid android:color="#00000000" />
+</shape>

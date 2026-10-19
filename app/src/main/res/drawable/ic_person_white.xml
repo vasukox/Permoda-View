@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Persona blanca SILUETA pura (sin halo blanco de fondo).
+    Se monta sobre el círculo Koaj (bg_avatar_koaj_strong).
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="64dp"
+    android:height="64dp"
+    android:viewportWidth="64"
+    android:viewportHeight="64">
+    <!-- Cabeza -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M32,22m-9,0a9,9 0,1 0,18 0a9,9 0,1 0,-18 0z" />
+    <!-- Cuerpo -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M32,36c-6.5,0 -19,3.18 -19,9.55V52h38v-6.45c0,-6.37 -12.5,-9.55 -19,-9.55z" />
+</vector>

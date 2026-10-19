@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Botón primario gold — el CTA principal del flujo.
+
+    Gradiente gold horizontal (gold_strong → gold_soft) con borde gold más
+    fuerte + sombra suave para elevarlo del fondo. El press oscurece
+    ligeramente el fondo (gold_pale) sin bajar al negro: sobre un fondo
+    cream, bajar a negro se ve "muerto"; aclarar a gold_pale mantiene la
+    calidez y se percibe como "tocaste".
+
+    Radio 14dp: más que un botón plano (8), menos que un pill (40). El
+    borde de 2dp es lo que da el "peso" — un gold sin borde se ve plano.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <layer-list>
+            <item android:left="0dp" android:top="2dp" android:right="0dp" android:bottom="1dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/koaj_shadow_soft" />
+                    <corners android:radius="14dp" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/accent_secondary_pale" />
+                    <stroke android:width="2dp" android:color="@color/border_accent_strong" />
+                    <corners android:radius="14dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item>
+        <layer-list>
+            <item android:left="0dp" android:top="2dp" android:right="0dp" android:bottom="4dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/koaj_shadow_strong" />
+                    <corners android:radius="14dp" />
+                </shape>
+            </item>
+            <item>
+                <shape android:shape="rectangle">
+                    <gradient
+                        android:angle="0"
+                        android:startColor="@color/accent_secondary"
+                        android:endColor="@color/accent_secondary_soft"
+                        android:type="linear" />
+                    <stroke android:width="2dp" android:color="@color/border_accent_strong" />
+                    <corners android:radius="14dp" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

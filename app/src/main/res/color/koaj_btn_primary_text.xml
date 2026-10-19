@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Texto del CTA primario ink (`bg_koaj_btn_primary_ink`).
+
+    Existe porque el relleno cambia con el estado y un solo color no sirve para
+    los dos:
+
+     · habilitado  → relleno ink casi negro  → texto blanco (17.5:1)
+     · deshabilitado → relleno gris #BFBAB2  → texto **ink** (9.1:1)
+
+    Dejar el blanco en el estado deshabilitado daba 1.9:1: el botón Aceptar pasa
+    la mayor parte del tiempo deshabilitado —mientras faltan campos— y su etiqueta
+    habría quedado prácticamente ilegible justo cuando el cajero necesita leerla
+    para entender que todavía no puede confirmar.
+
+    La señal de "deshabilitado" la da el relleno plano y la ausencia del filo
+    gold, no un texto que no se lee.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:color="@color/text_primary" />
+    <item android:color="@color/text_on_primary" />
+</selector>

@@ -1,0 +1,8 @@
+<Configuration><Parameters>
+  <!-- IDs ficticios: exclusivamente pruebas. No copiar al catálogo real. -->
+  <Param Key="CUSTOMER_TYPE_NORMAL_ID">10</Param>
+  <Param Key="CUSTOMER_TYPE_VIP_ID">47</Param>
+  <Param Key="CUSTOMER_TYPE_EMPLOYEE_ID">81</Param>
+  <Param Key="HKA_ENABLED">false</Param>
+  <Param Key="KOAJ_ALLOW_DECLINE">true</Param>
+</Parameters></Configuration>

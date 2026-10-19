@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Mango de selección gold para EditText del vendor.
+
+    El handle default de Android es una bolita azul con un círculo
+    adentro. Reemplazado por un cuadrado gold con bordes redondeados —
+    más premium y 100% on-brand.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <corners android:radius="2dp" />
+    <solid android:color="@color/focus_accent" />
+    <size android:width="24dp" android:height="22dp" />
+</shape>

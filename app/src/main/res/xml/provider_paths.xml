@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    HU-HIOPOS · Rutas que el FileProvider puede exponer a HioPosCloud.
+
+    Es el mecanismo que el contrato de ICG (HPCL.025, pág. 36, sección
+    "ModifyDocumentResultUri") define para devolver ficheros a partir de
+    Android 10, y el que usa HioPosCloud para pasarnos el documento:
+    en el Intent entrante llega
+    `DocumentUri=content://icg.android.start.provider/apitraffic/...`.
+
+    `files-path` apunta a `getFilesDir()`, que es almacenamiento PRIVADO de la
+    app: no requiere ningún permiso, ni siquiera en Android 11+ con scoped
+    storage. El manifest de referencia de ICG declara READ/WRITE_EXTERNAL_STORAGE,
+    pero con este mecanismo no hacen falta y no se piden.
+-->
+<paths>
+    <files-path
+        name="apitraffic"
+        path="ApiTraffic/" />
+</paths>
