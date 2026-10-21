@@ -83,13 +83,20 @@ class CustomerMirror(
         // vía [buildPhoneFullNumber] en [snapshot].
         mountPhoneCountryToolbox()
 
-        listOf(name, docId, email, phone).forEach { field ->
+        val keys = mapOf(name to "customerName", docId to "fiscalId", email to "email", phone to "phone")
+        keys.forEach { (field, key) ->
             field.addTextChangedListener(watcher)
             // El teclado se pide explícitamente al ganar foco. Dejarlo al
             // comportamiento por defecto obligaba al cajero a acertarle justo a
             // la línea de texto; con esto basta tocar cualquier parte del campo.
+            // El foco se publica para que la pantalla del cliente resalte ese campo.
             field.setOnFocusChangeListener { view, hasFocus ->
-                if (hasFocus) showKeyboard(view)
+                if (hasFocus) {
+                    showKeyboard(view)
+                    ConsentSharedState.setActiveField(key)
+                } else if (ConsentSharedState.current.activeField == key) {
+                    ConsentSharedState.setActiveField(null)
+                }
             }
             field.setOnClickListener { showKeyboard(it) }
         }
@@ -97,7 +104,12 @@ class CustomerMirror(
         // El tipo de documento se elige de una lista, nunca se teclea.
         docType.isFocusable = false
         docType.isFocusableInTouchMode = false
-        docType.setOnClickListener { if (editable) onDocTypeClick() }
+        docType.setOnClickListener {
+            if (editable) {
+                ConsentSharedState.setActiveField("fiscalDocumentType")
+                onDocTypeClick()
+            }
+        }
     }
 
     /**
@@ -115,12 +127,13 @@ class CustomerMirror(
         val toolbox = TextView(phone.context).apply {
             text = "+" + currentPhoneCountry.dial
             textSize = 16f
-            setTextColor(phone.context.getColor(R.color.koaj_text_ink))
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
-            setBackgroundResource(R.drawable.bg_phone_country_toolbox)
-            val pad = dp(10)
-            setPadding(pad, pad, dp(14), pad)
-            compoundDrawablePadding = dp(7)
+            setTextColor(phone.context.getColor(R.color.caja_text))
+            typeface = androidx.core.content.res.ResourcesCompat.getFont(phone.context, R.font.plex_sans_semibold)
+            fontFeatureSettings = "tnum"
+            setBackgroundResource(R.drawable.bg_caja_phone_prefix)
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), 0, dp(10), 0)
+            compoundDrawablePadding = dp(8)
             isClickable = true
             isFocusable = true
             contentDescription = phone.context.getString(R.string.phone_country_picker_title)
@@ -139,8 +152,8 @@ class CustomerMirror(
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
         )
-        phone.setPadding(dp(12), 0, dp(12), 0)
-        phone.background = phone.context.getDrawable(R.drawable.bg_phone_field_input)
+        phone.setPadding(dp(14), 0, dp(14), 0)
+        phone.background = phone.context.getDrawable(R.drawable.bg_caja_phone_input)
         row.addView(
             phone,
             LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.MATCH_PARENT, 1f)
@@ -200,7 +213,10 @@ class CustomerMirror(
     /** Pinta la bandera del país a la izquierda del "+dial" del toolbox. */
     private fun applyToolboxFlag(toolbox: TextView, country: PhoneCountry) {
         val flag = scaledFlag(country.flagRes, dp(18))
-        toolbox.setCompoundDrawablesRelative(flag, null, null, null)
+        // El chevron dice "esto se elige", igual que el selector de tipo de documento.
+        val chevron = toolbox.context.getDrawable(R.drawable.ic_caja_chevron_down)
+            ?.apply { setBounds(0, 0, dp(16), dp(16)) }
+        toolbox.setCompoundDrawablesRelative(flag, null, chevron, null)
     }
 
     /**
@@ -278,10 +294,12 @@ class CustomerMirror(
         suppressEmit = true
         try { docType.setText(fullName) } finally { suppressEmit = false }
         ConsentSharedState.updateCustomer(snapshot())
+        ConsentSharedState.setActiveField(null)
     }
 
     fun dispose() {
         listOf(name, docId, email, phone).forEach { it.removeTextChangedListener(watcher) }
+        ConsentSharedState.setActiveField(null)
     }
 
     private fun setIfChanged(field: EditText, value: String) {
@@ -336,7 +354,8 @@ class CustomerMirror(
         const val MAX_EMAIL = 60
         /** Teléfono local — sin contar el indicativo del país (que va aparte). */
         const val MAX_PHONE = 10
-        const val DISABLED_ALPHA = 0.5f
+        // El fondo gris del estado deshabilitado ya dice "bloqueado"; el alfa solo lo acompaña.
+        const val DISABLED_ALPHA = 0.7f
         // El docId es el único campo sólo-lectura permanente: el cajero lo
         // teclea UNA vez en la captura; en el formulario ya viene del lupita
         // y corregirlo requiere volver al paso de captura.

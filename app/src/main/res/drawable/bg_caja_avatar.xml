@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Partícula confetti ink circular -->
+<!-- Iniciales del cliente en la ficha del riel. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
-    <solid android:color="@color/particle_primary" />
+    <solid android:color="@color/caja_primary_tint" />
 </shape>

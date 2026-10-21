@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Aviso: hueso con un filete dorado a la izquierda, en lugar de una franja amarilla. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/vitrina_ground_alt" />
+        </shape>
+    </item>
+    <item android:gravity="start|fill_vertical" android:width="3dp">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/vitrina_gold" />
+        </shape>
+    </item>
+</layer-list>

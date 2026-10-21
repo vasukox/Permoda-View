@@ -385,13 +385,18 @@ private class ValidationPresentation(
 
                 // No sincronizamos durante el Consumidor Final: sus datos son
                 // fijos y una edición del cajero no debe alterarlos.
-                if (scenario == CustomerScenario.CONSUMIDOR_FINAL) return@collectLatest
+                if (scenario == CustomerScenario.CONSUMIDOR_FINAL) {
+                    runOnUi { screen.setActiveField(null) }
+                    return@collectLatest
+                }
                 // Solo aplicar si el customer cambió y NO fue por nuestro propio snapshot
                 val current = screen.snapshotCustomer()
                 if (shared.customer != current && shared.customer != lastAppliedCustomer) {
                     lastAppliedCustomer = shared.customer
                     runOnUi { screen.applyExternal(shared.customer) }
                 }
+                // Después de los datos, para que el cursor siga al valor recién pintado.
+                runOnUi { screen.setActiveField(shared.activeField) }
                 if (shared.warning != null) {
                     runOnUi { screen.setWarning(shared.warning) }
                 }

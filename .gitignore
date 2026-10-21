@@ -25,6 +25,7 @@ signing.properties
 # Artefactos y evidencias locales; pueden contener datos personales/tokens históricos.
 .claude/
 .kotlin/
+.impeccable/questions/
 *.apk
 *.apk.idsig
 qa/logs/

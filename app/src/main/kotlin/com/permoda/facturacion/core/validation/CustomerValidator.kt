@@ -41,7 +41,16 @@ object CustomerValidator {
 
     enum class Reason { MISSING, INVALID }
 
-    data class Issue(val field: Field, val reason: Reason)
+    /**
+     * @param detail qué está mal y cómo se corrige, en palabras del cajero. Lo
+     *   muestra el bloqueo al totalizar (`TotalizeGate`); los formularios siguen
+     *   usando [Result.summary], que sólo nombra los campos.
+     */
+    data class Issue(val field: Field, val reason: Reason, val detail: String? = null) {
+        /** Línea lista para mostrar: "Correo: está vacío." */
+        val message: String
+            get() = "${this.field.display}: " + (detail ?: if (reason == Reason.MISSING) "está vacío." else "no es válido.")
+    }
 
     data class Result(val issues: List<Issue>) {
 
@@ -66,10 +75,42 @@ object CustomerValidator {
                     if (invalid.isNotEmpty()) add("Revisa: ${invalid.joinToString(", ")}")
                 }.joinToString(" · ")
             }
+
+        /**
+         * Qué está mal campo por campo y cómo se corrige ("Nombre y apellido:
+         * tiene caracteres no permitidos (@)"). Es el texto del aviso del
+         * formulario: con solo el nombre del campo el cajero no sabía qué borrar.
+         */
+        val detail: String
+            get() = issues.joinToString("  ·  ") { it.message }
     }
 
-    // Deliberadamente laxo: valida forma, no existencia del buzón.
-    private val EMAIL = Regex("^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$")
+    /**
+     * Validación del **formulario**: valida los datos tal como se van a guardar,
+     * es decir, después de [CustomerSanitizer.clean]. Así un espacio de más o un
+     * carácter invisible del maestro nunca bloquean al cajero; se corrigen solos.
+     *
+     * Al totalizar se usa [validate] sobre el dato crudo: ahí sí interesa
+     * detectar la suciedad que ya está en el maestro.
+     */
+    fun validateForSave(customer: CustomerData, rules: Rules = Rules()): Result =
+        validate(CustomerSanitizer.clean(customer), rules)
+
+    /**
+     * Caracteres que admite la parte local de un correo (RFC 5322, "atext" + punto).
+     * Se aceptan todos los que el estándar permite; lo que no está aquí (ñ, tildes,
+     * comas, paréntesis…) no llega a un buzón real.
+     */
+    private const val EMAIL_LOCAL_CHARS = "!#$%&'*+-/=?^_`{|}~."
+
+    /** Forma: local@dominio.tld; dominio con letras, números, guiones y puntos. */
+    private val EMAIL = Regex(
+        "^[A-Za-z0-9!#$%&'*+\\-/=?^_`{|}~]+(\\.[A-Za-z0-9!#$%&'*+\\-/=?^_`{|}~]+)*" +
+            "@[A-Za-z0-9]([A-Za-z0-9\\-]*[A-Za-z0-9])?(\\.[A-Za-z0-9]([A-Za-z0-9\\-]*[A-Za-z0-9])?)*\\.[A-Za-z]{2,}$"
+    )
+
+    /** Los espacios no importan en ningún campo: se ignoran antes de validar. */
+    private val WHITESPACE = Regex("\\s+")
 
     /** Tipos cuyo número puede ser alfanumérico (pasaporte, permisos, doc. extranjero). */
     private val ALPHANUMERIC_DIAN_CODES = setOf("41", "42", "47", "48", "50")
@@ -110,69 +151,141 @@ object CustomerValidator {
      */
     private val PHONE_DIAL_PREFIXES = listOf("593", "506", "57", "00")
 
+    /** Código DIAN del NIT: razón social, admite números y signos de empresa. */
+    private const val NIT_DIAN_CODE = "31"
+
+    /** Signos admitidos en el nombre de una persona, además de letras y espacios. */
+    private const val PERSON_NAME_SIGNS = ".'-"
+
+    /** Signos admitidos en una razón social (NIT): "A&B S.A.S.", "Inversiones 2020, Ltda." */
+    private const val COMPANY_NAME_SIGNS = ".'-&,"
+
     fun validate(customer: CustomerData, rules: Rules = Rules()): Result {
         val issues = mutableListOf<Issue>()
 
-        // --- Nombre: la etiqueta pide "NOMBRE Y APELLIDO", así que exigimos dos.
-        val name = customer.customerName.trim()
+        // El tipo se resuelve primero porque decide qué caracteres admite el nombre.
+        val dianCode = TipoDocumentoMapper.toDianCode(customer.fiscalDocumentType)
+
+        // --- Nombre: solo caracteres de nombre. Los espacios (dobles, al inicio,
+        // tabulaciones) no cuentan: se reducen a uno antes de revisar.
+        val name = java.text.Normalizer.normalize(customer.customerName, java.text.Normalizer.Form.NFC)
+            .replace(WHITESPACE, " ").trim()
         when {
             name.isBlank() -> issues += Issue(Field.NAME, Reason.MISSING)
-            !isFullName(name) -> issues += Issue(Field.NAME, Reason.INVALID)
+            else -> nameProblem(name, isCompany = dianCode == NIT_DIAN_CODE)
+                ?.let { issues += Issue(Field.NAME, Reason.INVALID, it) }
         }
 
         // --- Tipo de documento: debe mapear a un código DIAN conocido.
-        val dianCode = TipoDocumentoMapper.toDianCode(customer.fiscalDocumentType)
         when {
             customer.fiscalDocumentType.isNullOrBlank() ->
                 issues += Issue(Field.DOC_TYPE, Reason.MISSING)
             dianCode == null ->
-                issues += Issue(Field.DOC_TYPE, Reason.INVALID)
+                issues += Issue(Field.DOC_TYPE, Reason.INVALID, "no es un tipo de documento reconocido por la DIAN.")
         }
 
         // --- Número de documento.
-        val docId = customer.fiscalId?.trim().orEmpty()
+        val docId = customer.fiscalId.orEmpty().replace(WHITESPACE, "")
         when {
             docId.isBlank() -> issues += Issue(Field.DOC_ID, Reason.MISSING)
-            !isValidDocId(docId, dianCode) -> issues += Issue(Field.DOC_ID, Reason.INVALID)
+            else -> docIdProblem(docId, dianCode)?.let { issues += Issue(Field.DOC_ID, Reason.INVALID, it) }
         }
 
         // --- Correo: canal de entrega de la factura electrónica.
-        val email = customer.email?.trim().orEmpty()
+        val email = customer.email.orEmpty().replace(WHITESPACE, "")
         when {
-            email.isBlank() -> if (rules.requireEmail) issues += Issue(Field.EMAIL, Reason.MISSING)
-            !EMAIL.matches(email) -> issues += Issue(Field.EMAIL, Reason.INVALID)
+            email.isBlank() -> if (rules.requireEmail) {
+                issues += Issue(Field.EMAIL, Reason.MISSING, "está vacío; la factura electrónica se envía a ese correo.")
+            }
+            else -> emailProblem(email)?.let { issues += Issue(Field.EMAIL, Reason.INVALID, it) }
         }
 
         // --- Teléfono: obligatorio, y con los 10 dígitos completos del celular.
-        val phone = customer.phone?.trim().orEmpty()
+        val phone = customer.phone.orEmpty().replace(WHITESPACE, "")
         when {
             phone.isBlank() -> if (rules.requirePhone) issues += Issue(Field.PHONE, Reason.MISSING)
-            !isValidPhone(phone) -> issues += Issue(Field.PHONE, Reason.INVALID)
+            else -> phoneProblem(phone)?.let { issues += Issue(Field.PHONE, Reason.INVALID, it) }
         }
 
         return Result(issues)
     }
 
-    /** Al menos dos palabras de 2+ caracteres. Rechaza "Juan" y "J P". */
-    private fun isFullName(name: String): Boolean =
-        name.split(Regex("\\s+")).count { it.length >= 2 } >= 2
-
-    private fun isValidDocId(docId: String, dianCode: String?): Boolean {
-        if (docId.length !in DOC_ID_MIN..DOC_ID_MAX) return false
-        if (docId.any { it.isWhitespace() }) return false
-        return if (dianCode != null && dianCode in ALPHANUMERIC_DIAN_CODES) {
-            docId.all { it.isLetterOrDigit() }
-        } else {
-            // Cédulas y NIT: sólo dígitos. El NIT se envía sin dígito de
-            // verificación ni guiones, igual que lo pide The Factory HKA.
-            docId.all { it.isDigit() }
+    /** `null` si el nombre sirve; si no, qué tiene mal. */
+    private fun nameProblem(name: String, isCompany: Boolean): String? {
+        val signs = if (isCompany) COMPANY_NAME_SIGNS else PERSON_NAME_SIGNS
+        val bad = name.codePoints().toArray()
+            .filterNot { cp ->
+                cp == ' '.code ||
+                    (Character.isLetter(cp) && Character.UnicodeScript.of(cp) == Character.UnicodeScript.LATIN) ||
+                    (isCompany && Character.isDigit(cp) && cp < 128) ||
+                    (cp < 128 && cp.toChar() in signs)
+            }
+        if (bad.isNotEmpty()) {
+            val allowed = if (isCompany) "letras, números, espacios y . , ' - &" else "letras, espacios y . ' -"
+            return "tiene caracteres especiales no permitidos (${describeChars(bad)}). Solo se aceptan $allowed."
         }
+        return null
     }
 
-    private fun isValidPhone(phone: String): Boolean {
-        // Permitimos +, espacios, guiones y paréntesis; nada más.
-        if (!phone.all { it.isDigit() || it in " +-()" }) return false
-        return localDigitCount(phone) in PHONE_MIN_LOCAL_DIGITS..PHONE_MAX_LOCAL_DIGITS
+    private fun docIdProblem(docId: String, dianCode: String?): String? {
+        val alphanumeric = dianCode != null && dianCode in ALPHANUMERIC_DIAN_CODES
+        // Cédulas y NIT: exclusivamente dígitos. El NIT se envía sin dígito de
+        // verificación ni guiones, igual que lo pide The Factory HKA. Pasaporte
+        // y documentos extranjeros: letras y dígitos.
+        val ok: (Int) -> Boolean = if (alphanumeric) {
+            { it in '0'.code..'9'.code || it in 'A'.code..'Z'.code || it in 'a'.code..'z'.code }
+        } else {
+            { it in '0'.code..'9'.code }
+        }
+        val bad = docId.codePoints().toArray().filterNot(ok)
+        if (bad.isNotEmpty()) {
+            val allowed = if (alphanumeric) "letras y números" else "números"
+            return "tiene caracteres especiales no permitidos (${describeChars(bad)}). Solo se aceptan $allowed."
+        }
+        if (docId.length !in DOC_ID_MIN..DOC_ID_MAX) return "debe tener entre $DOC_ID_MIN y $DOC_ID_MAX caracteres."
+        return null
+    }
+
+    private fun emailProblem(email: String): String? {
+        val bad = email.codePoints().toArray()
+            .filterNot { it < 128 && (it.toChar().isLetterOrDigit() || it.toChar() in EMAIL_LOCAL_CHARS || it == '@'.code) }
+        if (bad.isNotEmpty()) {
+            return "tiene caracteres especiales no permitidos (${describeChars(bad)}). " +
+                "Solo se aceptan letras sin tilde, números y . _ - + ! # $ % & ' * / = ? ^ ` { | } ~"
+        }
+        if (email.count { it == '@' } != 1 || !EMAIL.matches(email)) {
+            return "formato inválido; debe ser como nombre@dominio.com."
+        }
+        return null
+    }
+
+    private fun phoneProblem(phone: String): String? {
+        // Exclusivamente números; el + solo al inicio, para el indicativo.
+        val bad = phone.codePoints().toArray().withIndex()
+            .filterNot { (i, cp) -> cp in '0'.code..'9'.code || (i == 0 && cp == '+'.code) }
+            .map { it.value }
+        if (bad.isNotEmpty()) {
+            return "tiene caracteres especiales no permitidos (${describeChars(bad)}). Solo se aceptan números."
+        }
+        if (localDigitCount(phone) !in PHONE_MIN_LOCAL_DIGITS..PHONE_MAX_LOCAL_DIGITS) {
+            return "debe tener $PHONE_MIN_LOCAL_DIGITS dígitos sin contar el indicativo."
+        }
+        return null
+    }
+
+    /**
+     * Los caracteres rechazados, legibles para el cajero: los invisibles se
+     * nombran porque mostrarlos tal cual no dejaría ver qué quitar.
+     */
+    private fun describeChars(codePoints: List<Int>): String = codePoints.distinct().take(5).joinToString(" ") { cp ->
+        when {
+            cp == ' '.code -> "espacio"
+            cp == '\t'.code -> "tabulación"
+            cp == '\n'.code || cp == '\r'.code -> "salto de línea"
+            Character.isWhitespace(cp) || Character.isSpaceChar(cp) -> "espacio especial"
+            Character.getType(cp) == Character.FORMAT.toInt() || Character.isISOControl(cp) -> "carácter invisible"
+            else -> String(Character.toChars(cp))
+        }
     }
 
     /**

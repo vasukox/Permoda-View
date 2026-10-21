@@ -61,10 +61,12 @@ class CustomerScenarioTest {
     }
 
     @Test
-    fun `mismo documento pero sin nombre completo es COMPLETE_EXISTING`() {
+    fun `mismo documento con caracteres especiales en el nombre es COMPLETE_EXISTING`() {
+        // Desde el 20-oct-2026 una sola palabra es válida; lo que obliga a completar
+        // son los caracteres especiales.
         assertEquals(
             CustomerScenario.COMPLETE_EXISTING,
-            CustomerScenario.afterDocument(delPos.copy(customerName = "Juan"), "1011086580")
+            CustomerScenario.afterDocument(delPos.copy(customerName = "Juan Pérez #1"), "1011086580")
         )
     }
 

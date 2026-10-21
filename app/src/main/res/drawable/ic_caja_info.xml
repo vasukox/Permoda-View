@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícono de aviso (círculo con «i»), trazo de 1.75 en rejilla de 24. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M12,3.25a8.75,8.75 0,1 1,0 17.5a8.75,8.75 0,1 1,0 -17.5z"
+        android:strokeWidth="1.75"
+        android:strokeColor="#FF5C3D06"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M12,11L12,16.25"
+        android:strokeWidth="1.75"
+        android:strokeLineCap="round"
+        android:strokeColor="#FF5C3D06" />
+    <path
+        android:pathData="M12,7.25m-1.1,0a1.1,1.1 0,1 1,2.2 0a1.1,1.1 0,1 1,-2.2 0"
+        android:fillColor="#FF5C3D06" />
+</vector>

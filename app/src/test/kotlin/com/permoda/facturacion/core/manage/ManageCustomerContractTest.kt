@@ -113,9 +113,31 @@ class ManageCustomerContractTest {
         assertNull(another.customerId)
     }
 
-    @Test fun `edicion sin categoria o desconocida falla sin degradar empleados`() {
-        assertThrows(IllegalArgumentException::class.java) { ManagedCustomerSession.parse(xml(category = null), config) }
-        assertThrows(IllegalArgumentException::class.java) { ManagedCustomerSession.parse(xml(category = "999"), config) }
+    @Test fun `edicion sin categoria o desconocida se permite y no inventa tipo`() {
+        // Antes se bloqueaba la edición; ahora abre como Estándar y conserva lo que traía.
+        val desconocida = ManagedCustomerSession.parse(xml(category = "0"), config)
+        assertEquals(CustomerOperation.EDIT, desconocida.operation)
+        assertEquals("0", fields(desconocida.resultXml(desconocida.parsed.data, false))["customerTypeId"])
+        assertEquals("0", fields(desconocida.resultXml(desconocida.parsed.data, null))["customerTypeId"])
+        // Aceptar Koaj Lovers sí la convierte en VIP.
+        assertEquals("47", fields(desconocida.resultXml(desconocida.parsed.data, true))["customerTypeId"])
+
+        val sinCategoria = ManagedCustomerSession.parse(xml(category = null), config)
+        assertFalse(fields(sinCategoria.resultXml(sinCategoria.parsed.data, false)).containsKey("customerTypeId"))
+        assertEquals("999", fields(ManagedCustomerSession.parse(xml(category = "999"), config)
+            .let { it.resultXml(it.parsed.data, false) })["customerTypeId"])
+    }
+
+    @Test fun `extras de HioPos con tipo 0 y fecha de nacimiento abren la edicion`() {
+        val session = ManagedCustomerSession.fromPosExtras(mapOf(
+            "customerName" to "Persona Prueba", "fiscalId" to "12345678", "fiscalDocumentType" to 9,
+            "email" to "persona@prueba.com", "phone" to "3111234567", "customerTypeId" to 0,
+            "birthDate" to java.sql.Date.valueOf("1990-04-18")
+        ), ManageCustomerConfig.fromParametersXml(""))
+        assertEquals(CustomerOperation.EDIT, session.operation)
+        val out = fields(session.resultXml(session.parsed.data, false))
+        assertEquals("0", out["customerTypeId"])
+        assertEquals("1990-04-18", out["birthDate"])
     }
 
     @Test fun `membresia se convierte al catalogo remoto y preserva empleado y VIP`() {
@@ -133,7 +155,8 @@ class ManageCustomerContractTest {
     @Test fun `naturaleza fiscal permisos y campos originales no se convierten en membresia`() {
         val session = ManagedCustomerSession.parse(xml(extra = """<CustomerField Key="contactTypeId">2</CustomerField>
             <CustomerField Key="allowPromos">false</CustomerField><CustomerField Key="city">A &amp; B</CustomerField>"""), config)
-        val result = session.resultXml(session.parsed.data.copy(customerName = "Persona &amp Prueba"), true)
+        // Razón social (NIT): una persona ya no puede llevar "&" en el nombre.
+        val result = session.resultXml(session.parsed.data.copy(fiscalDocumentType = "31", customerName = "Persona &amp Prueba"), true)
         val f = fields(result)
         assertEquals("2", f["contactTypeId"])
         assertEquals("false", f["allowPromos"])

@@ -104,7 +104,11 @@ class ManageCustomerActivity : AppCompatActivity() {
                             this@ManageCustomerActivity, hkaConfig.auditEnabled, config.token,
                             dianType ?: "sin-tipo", HkaAuditor.maskDocumento(number), response, merge.source
                         )
-                        controller.showCustomer(merge.customer, merge.warning, merge.dianStatus)
+                        // La DIAN también trae espacios dobles en los nombres: se muestran ya limpios.
+                        controller.showCustomer(
+                            com.permoda.facturacion.core.validation.CustomerSanitizer.clean(merge.customer),
+                            merge.warning, merge.dianStatus
+                        )
                     },
                     onLoyaltyOutcome = { outcome ->
                         LoyaltyAuditor.emit(this@ManageCustomerActivity, loyalty.auditEnabled, config.token,
@@ -131,6 +135,7 @@ class ManageCustomerActivity : AppCompatActivity() {
                 fail(e.message ?: "Entrada de gestión de cliente inválida")
             } catch (e: Exception) {
                 // Nunca incluir XML, datos personales o mensajes de servicios en logs.
+                android.util.Log.w(TAG, "MANAGE_CUSTOMER error inesperado: ${e.javaClass.simpleName}")
                 fail("No se pudo completar la gestión del cliente")
             }
         }
@@ -142,6 +147,16 @@ class ManageCustomerActivity : AppCompatActivity() {
         @Suppress("DEPRECATION")
         val summary = extras?.keySet()?.sorted()?.joinToString { "$it:${extras.get(it)?.javaClass?.simpleName ?: "null"}" }
         android.util.Log.i(TAG, "MANAGE_CUSTOMER ← caller=${callingPackage ?: "desconocido"} extras=[${summary.orEmpty()}]")
+        // Solo debug: permite comprobar si al reabrir un cliente llegan los datos recién guardados.
+        if (BuildConfig.DEBUG) {
+            val plain = setOf("fiscalDocumentType", "contactTypeId", "customerTypeId", "allowPromos", "LanguageISO")
+            @Suppress("DEPRECATION")
+            val values = extras?.keySet()?.sorted()?.joinToString { key ->
+                val v = extras.get(key)?.toString().orEmpty()
+                if (key in plain || v.isEmpty()) "$key=$v" else "$key=${v.take(2)}…(${v.length})"
+            }
+            android.util.Log.i(TAG, "MANAGE_CUSTOMER valores ← ${values.orEmpty()}")
+        }
     }
 
     /** Solo debug: claves completas; valores personales reducidos a longitud y dos caracteres. */
@@ -162,7 +177,9 @@ class ManageCustomerActivity : AppCompatActivity() {
         ) { uri?.let { contentResolver.openInputStream(it) } }
     }
 
+    /** Los mensajes son nuestros (sin datos personales): se registran para diagnosticar. */
     private fun fail(message: String) {
+        android.util.Log.w(TAG, "MANAGE_CUSTOMER cancelado: $message")
         if (isFinishing) return
         completed = true
         finishError(message)

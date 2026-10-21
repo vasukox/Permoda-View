@@ -1,19 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Halo verde detrás del check del overlay de completion.
-
-    Misma estructura que el glow gold del pod, en verde Koaj (#10B981).
-    El CompletionAnimator lo hace respirar 1.0 → 1.15 → 1.0 cuando el
-    check se ha terminado de dibujar — refuerza el "asentamiento" del
-    cierre.
--->
+<!-- Halo verde de estado detrás del check. CompletionAnimator lo hace respirar. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
     <gradient
-        android:type="radial"
-        android:gradientRadius="180dp"
         android:centerX="0.5"
         android:centerY="0.5"
-        android:startColor="#7A10B981"
-        android:endColor="#0010B981" />
+        android:endColor="#0013764B"
+        android:gradientRadius="70dp"
+        android:startColor="#3313764B"
+        android:type="radial" />
 </shape>

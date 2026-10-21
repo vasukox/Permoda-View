@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Campo: línea de base suave; al enfocar, hilo dorado de 2dp. `activated` es el
+    mismo hilo en la pantalla del cliente, donde el campo no tiene foco pero el
+    cajero lo está escribiendo.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true">
+        <layer-list>
+            <item android:gravity="bottom" android:height="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/vitrina_gold" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_focused="true">
+        <layer-list>
+            <item android:gravity="bottom" android:height="2dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/vitrina_gold" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item>
+        <layer-list>
+            <item android:gravity="bottom" android:height="1dp">
+                <shape android:shape="rectangle">
+                    <solid android:color="@color/vitrina_rule" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

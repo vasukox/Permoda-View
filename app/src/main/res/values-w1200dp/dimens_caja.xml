@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="caja_page_pad_h">56dp</dimen>
+    <dimen name="caja_column_gap">32dp</dimen>
+    <dimen name="caja_rail_width">300dp</dimen>
+    <dimen name="caja_info_pad_h">240dp</dimen>
+</resources>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Número del teléfono: mitad derecha del grupo. El inset de -1dp a la izquierda
+     monta su borde sobre el del prefijo para que no se vea un filete doble. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:enterFadeDuration="140"
+    android:exitFadeDuration="180">
+    <item android:state_enabled="false">
+        <inset android:insetLeft="-1dp">
+            <shape android:shape="rectangle">
+                <corners android:bottomLeftRadius="0dp" android:bottomRightRadius="8dp" android:topLeftRadius="0dp" android:topRightRadius="8dp" />
+                <solid android:color="@color/caja_ground" />
+                <stroke android:width="1dp" android:color="@color/caja_rule" />
+            </shape>
+        </inset>
+    </item>
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <corners android:bottomLeftRadius="0dp" android:bottomRightRadius="8dp" android:topLeftRadius="0dp" android:topRightRadius="8dp" />
+            <solid android:color="@color/caja_surface" />
+            <stroke android:width="2dp" android:color="@color/caja_primary" />
+        </shape>
+    </item>
+    <item>
+        <inset android:insetLeft="-1dp">
+            <shape android:shape="rectangle">
+                <corners android:bottomLeftRadius="0dp" android:bottomRightRadius="8dp" android:topLeftRadius="0dp" android:topRightRadius="8dp" />
+                <solid android:color="@color/caja_surface" />
+                <stroke android:width="1dp" android:color="@color/caja_field_border" />
+            </shape>
+        </inset>
+    </item>
+</selector>

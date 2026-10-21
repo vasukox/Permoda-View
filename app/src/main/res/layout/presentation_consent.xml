@@ -1,29 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Pantalla del cliente en la 10"/11".
+    Pantalla del CLIENTE en la 10"/11" · sistema «Vitrina Koaj».
 
-    Sistema navy enterprise (19-ago-2026). Todas las zonas de este layout
-    comparten la paleta del cajero (fondo gris frío, tarjetas blancas con
-    hairline azul, CTA navy sólido) — así el cliente y el cajero están
-    mirando el mismo sistema al mismo tiempo.
+    El trámite usa los tokens `vitrina_*` (colors_vitrina.xml): blanco de
+    trabajo, voz de rótulo condensada y el documento en numerales grandes de
+    vinilo, para que el cliente lo vea crecer mientras el cajero escribe. La
+    espera del cajero es un panel de tinta a sangre.
 
-    La ÚNICA excepción es `zone_loyalty` (Koaj Lovers), que sigue siendo
-    oscura con oro tal cual la aprobó marca. Ese contraste es deliberado y
-    **se conservó a propósito en el re-skin a navy**: el resto del flujo es
-    "trámite" y la pantalla de Koaj Lovers es "invitación". Cuando el fondo
-    se va a negro, el cliente sabe que cambió de tema.
-
-    ⚠️ NO uniformar esa zona con las demás. Usa su propio juego de tokens
-    (`koaj_gold`, `koaj_black`, `koaj_ink`…) y sus propios 10 drawables, que
-    quedaron explícitamente fuera del barrido de la paleta. Cambiarla es una
-    conversación con marca, no un cambio de token.
+    ⚠️ `zone_loyalty` (Koaj Lovers) NO forma parte de este sistema: se conserva
+    tal cual la aprobó marca, con sus `koaj_*`, sus estilos KoajPerk* y sus
+    drawables. No uniformarla con las demás zonas.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_app">
+    android:background="@color/vitrina_ground">
 
     <LinearLayout
         android:id="@+id/zone_loading"
@@ -35,83 +28,59 @@
         android:visibility="visible">
 
         <ProgressBar
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_marginBottom="20dp"
-            android:indeterminateTint="@color/accent_secondary" />
+            android:indeterminateTint="@color/vitrina_gold" />
 
         <TextView
             android:id="@+id/loading_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:fontFamily="@font/barlow_condensed_semibold"
+            android:letterSpacing="0.16"
             android:text="@string/state_loading"
-            android:textColor="@color/text_primary"
-            android:textSize="18sp" />
+            android:textAllCaps="true"
+            android:textColor="@color/vitrina_text_soft"
+            android:textSize="16sp" />
     </LinearLayout>
 
-    <!--
-        HU-HIOPOS · `zone_validated` (la pantalla intermedia con el check
-        "Datos validados en la DIAN") se ELIMINÓ, no sólo se ocultó.
-
-        Llevaba tiempo en `visibility=gone` y ningún estado la pintaba:
-        `ScreenState.Validated` nunca se emitía. Mantener el layout, los
-        cuatro `findViewById`, el `applyDianStatus` y los strings de tres
-        variantes era cargar con una pantalla muerta que nadie veía.
-
-        El razonamiento de producto sigue siendo el mismo: el cliente ya no
-        edita, así que una confirmación intermedia le agrega ruido sin
-        valor. De la validación se pasa directo al form (`zone_data`). El
-        estado real de la DIAN lo ve el vendedor en su VendorScreen, que es
-        quien puede hacer algo con esa información.
-    -->
-
-    <!-- Overlay de selección de tipo de documento.
-         Estructura: FrameLayout "fondo" (solo fondo oscuro, cierra al tap)
-                     LinearLayout "card" (NO clickable, no consume taps)
-                       - título
-                       - lista de filas (cada una clickable individualmente) -->
+    <!-- Selector de tipo de documento: fondo que cierra al tap + panel que no consume taps. -->
     <FrameLayout
         android:id="@+id/zone_doc_type_picker"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#B30B0B0B"
+        android:background="@color/vitrina_scrim"
         android:clickable="true"
         android:focusable="true"
         android:visibility="gone">
 
-        <!-- Scrim: negro Koaj al 70%, el mismo del picker del vendedor. El
-             #E6000000 anterior (90% de negro puro) apagaba tanto el fondo
-             que el card parecía flotar en el vacío. -->
         <View
             android:id="@+id/doc_type_picker_scrim"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#B30B0B0B" />
+            android:background="@android:color/transparent" />
 
         <LinearLayout
             android:id="@+id/doc_type_picker_card"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginHorizontal="28dp"
-            android:background="@drawable/bg_koaj_card_white"
+            android:layout_marginHorizontal="48dp"
+            android:background="@drawable/bg_vitrina_panel"
             android:clickable="false"
             android:descendantFocusability="blocksDescendants"
-            android:elevation="12dp"
             android:focusable="false"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:padding="24dp">
 
             <TextView
+                style="@style/VitrinaHeading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:fontFamily="sans-serif-medium"
                 android:text="@string/consent_doc_type_dialog_title"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textSize="22sp" />
 
             <LinearLayout
                 android:id="@+id/doc_type_list"
@@ -123,66 +92,73 @@
         </LinearLayout>
     </FrameLayout>
 
-    <!-- Botón flotante: ▼ Cerrar teclado (aparece cuando el teclado está abierto).
-         Gold con el icono en tinta: el vector `ic_keyboard_hide` es blanco
-         de fábrica y sobre gold quedaba ilegible. -->
     <ImageButton
         android:id="@+id/keyboard_dismiss"
         android:layout_width="56dp"
         android:layout_height="56dp"
         android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        android:background="@drawable/bg_koaj_btn_primary_ink"
+        android:layout_margin="24dp"
+        android:background="@drawable/bg_vitrina_btn_primary"
         android:contentDescription="@string/consent_hide_keyboard"
-        android:elevation="12dp"
         android:padding="14dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_keyboard_hide"
-        app:tint="@color/text_on_primary"
+        app:tint="@color/vitrina_on_ink"
         android:visibility="gone" />
 
-    <!-- ============================================================= -->
-    <!-- Espera de la decisión del vendedor.                           -->
-    <!-- El cliente no tiene ninguna acción aquí a propósito: el flujo  -->
-    <!-- lo conduce el vendedor y esta pantalla sólo evita que el       -->
-    <!-- cliente crea que se colgó.                                     -->
-    <!-- ============================================================= -->
+    <!--
+        Espera de la decisión del cajero: panel de tinta a sangre, como la
+        vitrina antes de abrir. El cliente no tiene acción aquí a propósito.
+    -->
     <LinearLayout
         android:id="@+id/zone_waiting_vendor"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg_app"
+        android:background="@color/vitrina_ink"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="48dp"
+        android:padding="56dp"
         android:visibility="gone">
 
-        <ProgressBar
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:layout_marginBottom="26dp"
-            android:indeterminateTint="@color/accent_secondary" />
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
+            android:fontFamily="@font/barlow_condensed_semibold"
             android:gravity="center"
+            android:includeFontPadding="false"
+            android:letterSpacing="0.03"
+            android:lineSpacingMultiplier="0.95"
             android:text="@string/state_waiting_vendor_title"
-            android:textColor="@color/text_primary"
-            android:textSize="26sp"
-            android:textStyle="bold" />
+            android:textAllCaps="true"
+            android:textColor="@color/vitrina_on_ink"
+            android:textSize="38sp" />
+
+        <View
+            android:layout_width="56dp"
+            android:layout_height="2dp"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="20dp"
+            android:background="@color/vitrina_gold" />
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
             android:gravity="center"
+            android:lineSpacingExtra="2dp"
             android:text="@string/state_waiting_vendor_subtitle"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/vitrina_on_ink_soft"
             android:textSize="16sp" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="160dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="36dp"
+            android:indeterminate="true"
+            android:indeterminateTint="@color/vitrina_gold" />
     </LinearLayout>
 
+    <!-- Documento en vivo: el número crece en numerales de vinilo mientras el cajero escribe. -->
     <ScrollView
         android:id="@+id/zone_awaiting_document"
         android:layout_width="match_parent"
@@ -194,180 +170,120 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
+            android:gravity="center_vertical"
             android:orientation="vertical"
-            android:paddingHorizontal="36dp"
-            android:paddingTop="48dp"
+            android:paddingHorizontal="64dp"
+            android:paddingTop="56dp"
             android:paddingBottom="32dp">
 
             <TextView
                 android:id="@+id/awaiting_prompt"
+                style="@style/VitrinaHeading"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
+                android:layout_marginBottom="40dp"
                 android:text="@string/state_awaiting_validating"
-                android:textColor="@color/text_primary"
-                android:textSize="22sp" />
+                android:textSize="28sp" />
 
-            <!-- Card de marca: blanco con borde gold y sombra propia. El
-                 `elevation` se deja en 0 porque `bg_koaj_card_white` ya
-                 pinta su sombra en el layer-list; sumar las dos daba un
-                 halo gris sucio alrededor del borde dorado. -->
             <LinearLayout
+                android:id="@+id/awaiting_field_doc_type"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
-                android:background="@drawable/bg_koaj_card_white"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:background="@drawable/bg_row_ripple"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:minHeight="56dp"
+                android:orientation="horizontal"
+                android:paddingVertical="8dp">
 
-                <LinearLayout
-                    android:id="@+id/awaiting_field_doc_type"
-                    android:layout_width="match_parent"
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_marginEnd="14dp"
+                    android:contentDescription="@string/consent_label_doc_type"
+                    android:src="@drawable/ic_id"
+                    app:tint="@color/vitrina_text_muted" />
+
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_row_ripple"
-                    android:clickable="true"
-                    android:focusable="true"
-                    android:gravity="center_vertical"
-                    android:minHeight="56dp"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
+                    android:layout_marginEnd="16dp"
+                    android:fontFamily="@font/barlow_condensed_semibold"
+                    android:letterSpacing="0.14"
+                    android:text="@string/consent_label_doc_type"
+                    android:textAllCaps="true"
+                    android:textColor="@color/vitrina_text_muted"
+                    android:textSize="13sp" />
 
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="16dp"
-                        android:contentDescription="@string/consent_label_doc_type"
-                        android:src="@drawable/ic_id"
-                        app:tint="@color/accent_secondary" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:letterSpacing="0.22"
-                            android:text="@string/consent_label_doc_type"
-                            android:textAllCaps="true"
-                            android:textColor="@color/accent_secondary"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:id="@+id/awaiting_field_doc_type_value"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:fontFamily="sans-serif-medium"
-                            android:text="CC"
-                            android:textColor="@color/text_primary"
-                            android:textSize="18sp" />
-                    </LinearLayout>
-
-                    <!-- Sin lápiz: el cliente no edita nada, sólo mira lo que
-                         el cajero digita. Un ícono de editar invitaba a tocar
-                         una pantalla que es de solo lectura. -->
-                </LinearLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:background="@color/border_hairline" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <!-- Sin lápiz: el cliente no edita, solo mira lo que el cajero digita. -->
+                <TextView
+                    android:id="@+id/awaiting_field_doc_type_value"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center_vertical"
-                    android:minHeight="56dp"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:layout_marginEnd="16dp"
-                        android:contentDescription="@string/consent_label_doc_id"
-                        android:src="@drawable/ic_number"
-                        app:tint="@color/accent_secondary" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="sans-serif-medium"
-                            android:letterSpacing="0.22"
-                            android:text="@string/consent_label_doc_id"
-                            android:textAllCaps="true"
-                            android:textColor="@color/accent_secondary"
-                            android:textSize="11sp"
-                            android:textStyle="bold" />
-
-                        <EditText
-                            android:id="@+id/awaiting_field_doc_id"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:background="@null"
-                            android:fontFamily="sans-serif-medium"
-                            android:hint="@string/consent_doc_id_hint"
-                            android:imeOptions="actionDone"
-                            android:inputType="number"
-                            android:maxLength="20"
-                            android:textColor="@color/text_primary"
-                            android:textColorHint="@color/text_muted"
-                            android:textSize="18sp" />
-                    </LinearLayout>
-                </LinearLayout>
+                    android:background="@drawable/bg_vitrina_badge"
+                    android:fontFamily="@font/barlow_condensed_semibold"
+                    android:letterSpacing="0.06"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="3dp"
+                    android:text="CC"
+                    android:textColor="@color/vitrina_text"
+                    android:textSize="18sp"
+                    tools:ignore="HardcodedText" />
             </LinearLayout>
 
-            <!--
-                CTA primario gold. Es el mismo `bg_koaj_btn_gold` que usa el
-                vendedor: cuando el cajero pulsa "Continuar" en su pantalla y
-                el cliente pulsa "Continuar" en la suya, están pulsando el
-                mismo botón.
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:fontFamily="@font/barlow_condensed_semibold"
+                android:letterSpacing="0.14"
+                android:text="@string/consent_label_doc_id"
+                android:textAllCaps="true"
+                android:textColor="@color/vitrina_text_muted"
+                android:textSize="13sp" />
 
-                Sin `drawableStart`: el ✓ delante del texto sobraba (el botón
-                no confirma nada todavía, avanza) y encima `ic_check` es un
-                vector blanco que sobre gold quedaba invisible.
-            -->
+            <!-- El número sigue siendo el protagonista, ahora en semibold. -->
+            <EditText
+                android:id="@+id/awaiting_field_doc_id"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_vitrina_field"
+                android:fontFamily="@font/barlow_condensed_semibold"
+                android:hint="@string/consent_doc_id_hint"
+                android:imeOptions="actionDone"
+                android:includeFontPadding="false"
+                android:inputType="number"
+                android:letterSpacing="0.06"
+                android:maxLength="20"
+                android:paddingBottom="12dp"
+                android:textColor="@color/vitrina_text"
+                android:textColorHint="@color/vitrina_text_muted"
+                android:textCursorDrawable="@null"
+                android:textSize="64sp"
+                tools:ignore="LabelFor" />
+
             <Button
                 android:id="@+id/btn_continue"
+                style="@style/VitrinaButton.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_koaj_btn_primary_ink"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:stateListAnimator="@null"
-                android:text="@string/consent_continue"
-                android:textAllCaps="false"
-                android:textColor="@color/koaj_btn_primary_text"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:layout_marginTop="48dp"
+                android:layout_marginBottom="8dp"
+                android:text="@string/consent_continue" />
 
             <TextView
                 android:id="@+id/awaiting_link_reject"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
+                android:layout_gravity="center_horizontal"
+                android:minHeight="48dp"
+                android:gravity="center"
                 android:padding="10dp"
                 android:text="@string/consent_reject"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+                android:textColor="@color/vitrina_text_soft"
+                android:textSize="15sp" />
         </LinearLayout>
     </ScrollView>
 
@@ -383,105 +299,69 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:paddingHorizontal="36dp"
-            android:paddingTop="36dp"
+            android:paddingHorizontal="64dp"
+            android:paddingTop="48dp"
             android:paddingBottom="32dp">
-
-            <!-- Sin avatar: el cliente mira esta pantalla mientras el cajero
-                 escribe, así que el espacio es para los datos, no para un
-                 ícono decorativo. -->
 
             <TextView
                 android:id="@+id/consent_title"
-                android:layout_width="wrap_content"
+                style="@style/VitrinaHeading"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="6dp"
-                android:fontFamily="sans-serif-medium"
                 android:text="@string/consent_title"
-                android:textColor="@color/text_primary"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                android:textSize="28sp" />
 
             <TextView
                 android:id="@+id/consent_subtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="28dp"
-                android:gravity="center"
+                android:layout_marginTop="6dp"
+                android:layout_marginBottom="32dp"
+                android:lineSpacingExtra="2dp"
                 android:text="@string/consent_subtitle"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+                android:textColor="@color/vitrina_text_soft"
+                android:textSize="15sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="32dp"
-                android:background="@drawable/bg_koaj_card_white"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:orientation="vertical">
 
                 <include android:id="@+id/field_name" layout="@layout/widget_field" />
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:background="@color/border_hairline" />
+                <View style="@style/VitrinaRowRule" />
                 <include android:id="@+id/field_doc_type" layout="@layout/widget_field" />
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:background="@color/border_hairline" />
+                <View style="@style/VitrinaRowRule" />
                 <include android:id="@+id/field_doc_id" layout="@layout/widget_field" />
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:background="@color/border_hairline" />
+                <View style="@style/VitrinaRowRule" />
                 <include android:id="@+id/field_email" layout="@layout/widget_field" />
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginBottom="10dp"
-                    android:background="@color/border_hairline" />
+                <View style="@style/VitrinaRowRule" />
                 <include android:id="@+id/field_phone" layout="@layout/widget_field" />
             </LinearLayout>
 
-            <!-- Aviso: mismo `bg_koaj_warning` del vendedor (cream + franja
-                 gold lateral). El ámbar plano #FEF3C7 anterior era el único
-                 color del sistema que no salía de la paleta Koaj. -->
             <TextView
                 android:id="@+id/warning_banner"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:background="@drawable/bg_koaj_warning"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:padding="12dp"
-                android:textColor="@color/text_primary"
-                android:textSize="13sp"
+                android:background="@drawable/bg_vitrina_notice"
+                android:paddingHorizontal="18dp"
+                android:paddingVertical="12dp"
+                android:textColor="@color/vitrina_text_soft"
+                android:textSize="14sp"
                 android:visibility="gone"
                 tools:text="No se pudo validar con DIAN. Datos no verificados."
                 tools:visibility="visible" />
 
-            <!-- Qué falta para poder aceptar. Sólo visible cuando hay algo
-                 pendiente; el botón Aceptar queda deshabilitado en paralelo. -->
+            <!-- Qué falta para aceptar; el botón queda deshabilitado en paralelo. -->
             <TextView
                 android:id="@+id/validation_hint"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="14dp"
                 android:drawablePadding="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:textColor="@color/koaj_state_invalid"
+                android:textColor="@color/vitrina_error"
                 android:textSize="14sp"
                 android:visibility="gone"
                 tools:text="Para continuar: Faltan: Nombre y apellido, Correo"
@@ -489,97 +369,76 @@
 
             <Button
                 android:id="@+id/btn_accept"
+                style="@style/VitrinaButton.Primary"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:layout_marginBottom="12dp"
-                android:background="@drawable/bg_koaj_btn_primary_ink"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:stateListAnimator="@null"
-                android:text="@string/consent_accept"
-                android:textAllCaps="false"
-                android:textColor="@color/koaj_btn_primary_text"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:layout_marginBottom="8dp"
+                android:text="@string/consent_accept" />
 
-            <!-- El botón de Consumidor Final vive SOLO en la pantalla del
-                 vendedor: es él quien oye "no quiero dar mis datos" y quien
-                 decide facturar al genérico. Ofrecérselo al cliente lo
-                 invitaba a no identificarse. -->
-
+            <!-- Consumidor Final vive solo en la pantalla del cajero. -->
             <TextView
                 android:id="@+id/link_reject"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif"
+                android:layout_gravity="center_horizontal"
+                android:minHeight="48dp"
+                android:gravity="center"
                 android:padding="10dp"
                 android:text="@string/consent_reject"
-                android:textColor="@color/text_secondary"
-                android:textSize="14sp" />
+                android:textColor="@color/vitrina_text_soft"
+                android:textSize="15sp" />
         </LinearLayout>
     </ScrollView>
 
-    <!--
-        Cierre del flujo. Antes era una pantalla verde a sangre (#10B981)
-        con el check en blanco: el verde saturado a pantalla completa era el
-        golpe cromático más fuerte de toda la app y rompía la continuidad
-        justo en el último frame.
-
-        Ahora es cream con el check verde y su halo — exactamente el mismo
-        cierre que el `view_vendor_done_overlay` del cajero. El verde sigue
-        diciendo "listo", pero como acento, no como fondo.
-    -->
+    <!-- Cierre: el verde dice «listo» como estado, sobre blanco de trabajo. -->
     <LinearLayout
         android:id="@+id/zone_confirmed"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg_app"
+        android:background="@color/vitrina_ground"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone">
 
         <FrameLayout
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:layout_marginBottom="32dp">
+            android:layout_width="112dp"
+            android:layout_height="112dp"
+            android:layout_marginBottom="28dp">
 
             <View
-                android:layout_width="180dp"
-                android:layout_height="180dp"
+                android:layout_width="112dp"
+                android:layout_height="112dp"
                 android:layout_gravity="center"
-                android:alpha="0.9"
-                android:background="@drawable/bg_koaj_confirm_halo" />
+                android:background="@drawable/bg_vitrina_success_disc" />
 
             <ImageView
                 android:id="@+id/confirmed_check"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
                 android:layout_gravity="center"
                 android:contentDescription="@string/state_confirmed"
                 android:src="@drawable/ic_check"
-                app:tint="@color/koaj_done_primary" />
+                app:tint="@color/vitrina_on_ink" />
         </FrameLayout>
 
         <TextView
             android:id="@+id/confirmed_title"
+            style="@style/VitrinaHeading"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="32dp"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginHorizontal="48dp"
             android:gravity="center"
             android:text="@string/state_confirmed"
-            android:textColor="@color/text_primary"
-            android:textSize="28sp"
-            android:textStyle="bold" />
+            android:textSize="34sp" />
 
         <TextView
             android:id="@+id/confirmed_subtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginHorizontal="32dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginHorizontal="48dp"
             android:gravity="center"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/vitrina_text_soft"
             android:textSize="16sp"
             android:visibility="gone"
             tools:text="Tus descuentos ya están activos"
@@ -590,85 +449,68 @@
         android:id="@+id/zone_rejected"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg_surface_alt"
+        android:background="@color/vitrina_ground_alt"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone">
 
         <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginBottom="20dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="24dp"
             android:contentDescription="@string/state_rejected"
             android:src="@drawable/ic_reject_circle" />
 
         <TextView
+            style="@style/VitrinaHeading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginHorizontal="32dp"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginHorizontal="48dp"
             android:gravity="center"
-            android:text="@string/state_rejected"
-            android:textColor="@color/text_primary"
-            android:textSize="22sp" />
+            android:text="@string/state_rejected" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/zone_error"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg_app"
+        android:background="@color/vitrina_ground"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="32dp"
+        android:padding="48dp"
         android:visibility="gone">
 
         <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:layout_marginBottom="20dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginBottom="24dp"
             android:contentDescription="@string/state_error"
             android:src="@drawable/ic_error_red" />
 
         <TextView
+            style="@style/VitrinaHeading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:fontFamily="sans-serif-medium"
-            android:text="@string/state_error"
-            android:textColor="@color/text_primary"
-            android:textSize="22sp"
-            android:textStyle="bold" />
+            android:layout_marginBottom="10dp"
+            android:text="@string/state_error" />
 
         <TextView
             android:id="@+id/error_message"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
+            android:layout_marginBottom="36dp"
             android:gravity="center"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/vitrina_text_soft"
             android:textSize="16sp"
             tools:text="No se pudo leer el XML del cliente." />
 
         <Button
             android:id="@+id/btn_retry"
+            style="@style/VitrinaButton.Primary"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:background="@drawable/bg_koaj_btn_primary_ink"
-            android:fontFamily="sans-serif-medium"
-            android:stateListAnimator="@null"
-            android:text="@string/consent_retry"
-            android:textAllCaps="false"
-            android:textColor="@color/koaj_btn_primary_text"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:text="@string/consent_retry" />
     </LinearLayout>
-
-    <!-- ============================================================= -->
-    <!-- Consumidor Final: datos genéricos en modo LECTURA.            -->
-    <!-- No editable a propósito â€” 222222222222 es un valor fijo de    -->
-    <!-- negocio, no un dato que el cliente pueda corregir.            -->
-    <!-- ============================================================= -->
 
 
     <!-- ================================================================= -->
@@ -1168,17 +1010,17 @@
         android:id="@+id/zone_no_data"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/bg_app"
+        android:background="@color/vitrina_ground"
         android:gravity="center"
         android:orientation="vertical"
         android:visibility="gone">
 
         <TextView
+            style="@style/VitrinaHeading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
             android:text="@string/state_no_data"
-            android:textColor="@color/text_secondary"
-            android:textSize="20sp" />
+            android:textColor="@color/vitrina_text_soft"
+            android:textSize="26sp" />
     </LinearLayout>
 </FrameLayout>

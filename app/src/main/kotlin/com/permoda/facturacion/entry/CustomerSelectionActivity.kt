@@ -4,7 +4,10 @@ import android.app.Activity
 import android.os.Bundle
 import com.permoda.facturacion.core.model.ModuleConfig
 
-/** Compatibilidad de resolución: la selección y consulta pertenecen al POS. */
+/**
+ * Compatibilidad de resolución de SELECT_CUSTOMER: la selección y consulta
+ * pertenecen al POS. MODIFY_DOCUMENT lo atiende TotalizeValidationActivity.
+ */
 class CustomerSelectionActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

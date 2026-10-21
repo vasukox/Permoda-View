@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!--
-    Backdrop del overlay de completion.
-
-    Capa semitransparente con viñeta vertical, igual al del pod pero con
-    un tinte verde sutil al centro para que se sienta "celebración",
-    no "espera". El verde es 8% alfa — apenas perceptible, no compite
-    con el card.
--->
+<!-- Velo del overlay de completion: gris frío translúcido, deja intuir la pantalla debajo. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <gradient
-        android:angle="270"
-        android:startColor="#E6FAF8F2"
-        android:centerColor="#CCFAF8F2"
-        android:endColor="#F2FAF8F2"
-        android:type="linear" />
+    <solid android:color="#E0E9EDF3" />
 </shape>

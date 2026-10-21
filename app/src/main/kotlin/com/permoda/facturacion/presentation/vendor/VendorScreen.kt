@@ -47,6 +47,9 @@ class VendorScreen(private val root: ViewGroup) {
     private var warning: TextView? = null
     private var validationHint: TextView? = null
     private var progress: android.widget.ProgressBar? = null
+
+    /** Cinta de pasos de la banda (rótulo + cinta de 4dp por paso). */
+    private var steps: List<Pair<TextView?, View?>> = emptyList()
     private var heartRotate: android.animation.ObjectAnimator? = null
     private var footerHint: TextView? = null
     private var btnCancel: Button? = null
@@ -60,8 +63,23 @@ class VendorScreen(private val root: ViewGroup) {
      * que las animaciones de stage no las tengan que volver a resolver.
      */
     private var headerBlock: View? = null
+    private var railBlock: View? = null
     private var mainBlock: View? = null
     private var footerBlock: View? = null
+
+    /** Ficha del riel: a quién se está atendiendo. */
+    private var recordInitials: TextView? = null
+    private var recordIcon: View? = null
+    private var recordName: TextView? = null
+    private var recordDoc: TextView? = null
+
+    /**
+     * Notificaciones flotantes (aviso y validación). La pila sube con el
+     * teclado para no quedar tapada.
+     */
+    private var toastStack: View? = null
+    private var warningToast: View? = null
+    private var validationToast: View? = null
 
     /**
      * Sub-bloques del header para la animación más fina del entrance: el
@@ -238,9 +256,25 @@ class VendorScreen(private val root: ViewGroup) {
         promptSearch   = root.findViewById(R.id.vendor_prompt_search)
         mirrorScroll   = root.findViewById(R.id.vendor_mirror_scroll)
 
+        steps = listOf(
+            root.findViewById<TextView>(R.id.vendor_step_doc) to root.findViewById<View>(R.id.vendor_step_doc_bar),
+            root.findViewById<TextView>(R.id.vendor_step_data) to root.findViewById<View>(R.id.vendor_step_data_bar),
+            root.findViewById<TextView>(R.id.vendor_step_koaj) to root.findViewById<View>(R.id.vendor_step_koaj_bar)
+        )
+
         headerBlock    = root.findViewById(R.id.vendor_header)
-        mainBlock      = root.findViewById(R.id.vendor_mirror_scroll)
+        railBlock      = root.findViewById(R.id.vendor_rail)
+        mainBlock      = root.findViewById(R.id.vendor_main)
         footerBlock    = root.findViewById(R.id.vendor_footer)
+
+        recordInitials = root.findViewById(R.id.vendor_record_initials)
+        recordIcon     = root.findViewById(R.id.vendor_record_icon)
+        recordName     = root.findViewById(R.id.vendor_record_name)
+        recordDoc      = root.findViewById(R.id.vendor_record_doc)
+
+        toastStack      = root.findViewById(R.id.vendor_toast_stack)
+        warningToast    = root.findViewById(R.id.vendor_warning_toast)
+        validationToast = root.findViewById(R.id.vendor_validation_toast)
         headerIconFrame = root.findViewById(R.id.vendor_header_icon_frame)
         headerTextBlock = root.findViewById(R.id.vendor_header_text)
 
@@ -348,99 +382,151 @@ class VendorScreen(private val root: ViewGroup) {
 
         docTypeScrim?.setOnClickListener { hideDocTypePicker() }
 
-        // Press premium en cada CTA: scale 1.0 → 0.96 → 1.0 con overshoot.
-        // El drawable gold ya hace el press de color; el press de escala lo
-        // hacemos acá para que el feedback sea idéntico entre todos los
-        // botones del flujo (independiente del background drawable).
+        // Respuesta al toque idéntica en todos los botones del cajero: el
+        // drawable cambia de color y el botón cede un 2% mientras el dedo está
+        // encima. Antes esto se disparaba una sola vez al abrir la pantalla.
         listOfNotNull(
+            btnCancel,
             btnAccept,
             btnBack,
             captureContinue,
             captureCf,
+            captureEmployeeYes,
+            captureEmployeeNo,
             promptYes,
             promptSearch
-        ).forEach { scalePress(it) }
+        ).forEach { attachPressFeedback(it) }
 
-        // Stagger entry premium en el primer render. Se ejecuta una sola
-        // vez: después las animaciones de stage se encargan del resto.
+        // La pila de notificaciones solo anima el reacomodo de las demás; la
+        // entrada y salida de cada una las hace showToast / hideToast.
+        (toastStack as? ViewGroup)?.layoutTransition?.apply {
+            disableTransitionType(android.animation.LayoutTransition.APPEARING)
+            disableTransitionType(android.animation.LayoutTransition.DISAPPEARING)
+            setInterpolator(android.animation.LayoutTransition.CHANGE_APPEARING, EASE_OUT)
+            setInterpolator(android.animation.LayoutTransition.CHANGE_DISAPPEARING, EASE_OUT)
+        }
+
+        // "Sincronizado en vivo": el punto respira mientras la pantalla está abierta.
+        root.findViewById<View>(R.id.vendor_live_dot)?.let { startLiveDot(it) }
+
+        // Entrada escalonada en el primer render. Se ejecuta una sola
+        // vez: después las transiciones de etapa se encargan del resto.
         runStaggerEntry()
     }
 
     /**
-     * Press premium: scale 1.0 → 0.96 → 1.0 con overshoot, 220ms. Es
-     * idéntico al del pod (Continuar) para que todos los botones del flujo
-     * se sientan de la misma marca.
+     * Presión sobria: escala a 0.98 al bajar el dedo y vuelve al soltar. No
+     * consume el evento, así que el click y el estado `pressed` del drawable
+     * siguen funcionando igual.
      */
-    private fun scalePress(view: View, then: () -> Unit = {}) {
-        android.animation.AnimatorSet().apply {
-            playTogether(
-                android.animation.ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.96f, 1f).apply {
-                    duration = 220
-                    interpolator = android.view.animation.OvershootInterpolator(0.8f)
-                },
-                android.animation.ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.96f, 1f).apply {
-                    duration = 220
-                    interpolator = android.view.animation.OvershootInterpolator(0.8f)
-                },
-                android.animation.ObjectAnimator.ofFloat(view, "alpha", 1f, 0.78f, 1f).apply {
-                    duration = 220
-                }
-            )
-        }.start()
+    @android.annotation.SuppressLint("ClickableViewAccessibility")
+    private fun attachPressFeedback(view: View) {
+        view.setOnTouchListener { v, event ->
+            when (event.actionMasked) {
+                android.view.MotionEvent.ACTION_DOWN ->
+                    v.animate().scaleX(PRESS_SCALE).scaleY(PRESS_SCALE)
+                        .setDuration(PRESS_IN_MS).setInterpolator(EASE_OUT).start()
+                android.view.MotionEvent.ACTION_UP,
+                android.view.MotionEvent.ACTION_CANCEL ->
+                    v.animate().scaleX(1f).scaleY(1f)
+                        .setDuration(PRESS_OUT_MS).setInterpolator(EASE_OUT).start()
+            }
+            false
+        }
+    }
+
+    private var liveDotPulse: android.animation.Animator? = null
+
+    private fun startLiveDot(dot: View) {
+        liveDotPulse?.cancel()
+        liveDotPulse = android.animation.ObjectAnimator.ofFloat(dot, "alpha", 1f, 0.3f, 1f).apply {
+            duration = LIVE_DOT_MS
+            repeatCount = android.animation.ValueAnimator.INFINITE
+            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
+            start()
+        }
     }
 
     /**
-     * Stagger entry premium: los tres bloques del layout aparecen en
-     * cascada con fade + slide Y.
+     * Entrada escalonada: banda, riel, tarea y pie aparecen en cascada con un
+     * desvanecido y un desplazamiento corto, frenando con una curva
+     * exponencial (rápido al principio, se asienta sin rebote).
      *
-     *   · header (icono + texto + badge)   delay 0ms, slide 24
-     *   · bloque principal (mirror/prompt) delay 100ms, slide 32
-     *   · footer                            delay 180ms, slide 18
-     *
-     * Cada bloque arranca con alpha 0 y se asienta con DecelerateInterpolator.
-     * El delta de 100ms entre header y main, y 80ms entre main y footer,
-     * forma una curva que se siente "premium" sin ser lenta.
+     *   · banda            delay 0ms   (baja 6dp)
+     *   · riel             delay 70ms  (sube 14dp)
+     *   · tarea            delay 140ms (sube 14dp)
+     *   · pie              delay 210ms (sube 10dp)
      */
     private fun runStaggerEntry() {
-        val blocks = listOfNotNull(headerBlock, mainBlock, footerBlock)
-        blocks.forEachIndexed { index, view ->
-            val delay = (index * STAGGER_BLOCK_DELAY_MS).toLong()
-            val distance = STAGGER_BLOCK_DISTANCES[index]
+        val density = context.resources.displayMetrics.density
+        listOf(headerBlock, railBlock, mainBlock, footerBlock).forEachIndexed { index, view ->
+            view ?: return@forEachIndexed
+            val delay = index * STAGGER_BLOCK_DELAY_MS
             view.alpha = 0f
-            view.translationY = distance
+            view.translationY = STAGGER_BLOCK_DISTANCES_DP[index] * density
             view.animate()
                 .alpha(1f)
                 .translationY(0f)
                 .setStartDelay(delay)
                 .setDuration(STAGGER_BLOCK_DURATION_MS)
-                .setInterpolator(android.view.animation.DecelerateInterpolator(1.1f))
+                .setInterpolator(EASE_OUT)
                 .start()
         }
-        // Sub-stagger dentro del header: el icono entra primero (0ms),
-        // luego el bloque de texto (60ms). El badge ya viene con el bloque
-        // de texto del header porque está en el mismo LinearLayout.
+        // Dentro de la banda, el ícono llega un instante antes que el texto.
         headerIconFrame?.let {
             it.alpha = 0f
-            it.translationX = -16f
+            it.scaleX = 0.9f
+            it.scaleY = 0.9f
             it.animate()
                 .alpha(1f)
-                .translationX(0f)
+                .scaleX(1f)
+                .scaleY(1f)
                 .setStartDelay(0L)
                 .setDuration(STAGGER_BLOCK_DURATION_MS)
-                .setInterpolator(android.view.animation.DecelerateInterpolator(1.2f))
+                .setInterpolator(EASE_OUT)
                 .start()
         }
         headerTextBlock?.let {
             it.alpha = 0f
-            it.translationY = 12f
+            it.translationX = -8f * density
             it.animate()
                 .alpha(1f)
-                .translationY(0f)
-                .setStartDelay(60L)
+                .translationX(0f)
+                .setStartDelay(50L)
                 .setDuration(STAGGER_BLOCK_DURATION_MS)
-                .setInterpolator(android.view.animation.DecelerateInterpolator(1.2f))
+                .setInterpolator(EASE_OUT)
                 .start()
         }
+    }
+
+    /**
+     * Alterna una zona de contenido. Al aparecer entra con desvanecido y un
+     * desplazamiento de 12dp; al ocultarse se va de inmediato, para que nunca
+     * convivan dos zonas a la vez. Si ya estaba visible no hace nada, así que
+     * es seguro llamarlo en cada `render`.
+     */
+    private fun setZoneVisible(view: View?, show: Boolean) {
+        view ?: return
+        if (!show) {
+            if (view.visibility != View.GONE) {
+                view.animate().cancel()
+                view.alpha = 1f
+                view.translationY = 0f
+                view.visibility = View.GONE
+            }
+            return
+        }
+        if (view.visibility == View.VISIBLE) return
+        view.alpha = 0f
+        view.translationY = ZONE_ENTER_DP * context.resources.displayMetrics.density
+        view.visibility = View.VISIBLE
+        view.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setStartDelay(0L)
+            .setDuration(ZONE_ENTER_MS)
+            .setInterpolator(EASE_OUT)
+            .start()
     }
 
     /**
@@ -464,6 +550,12 @@ class VendorScreen(private val root: ViewGroup) {
                 publishCaptureInProgress()
             }
         })
+
+        // Mientras el cajero digita el documento, el número se resalta en la pantalla del cliente.
+        captureDocId?.setOnFocusChangeListener { _, hasFocus ->
+            if (hasFocus) ConsentSharedState.setActiveField("fiscalId")
+            else if (ConsentSharedState.current.activeField == "fiscalId") ConsentSharedState.setActiveField(null)
+        }
 
         captureContinue?.setOnClickListener { confirmCapture() }
         captureDocId?.setOnEditorActionListener { _, _, _ -> confirmCapture(); true }
@@ -543,13 +635,11 @@ class VendorScreen(private val root: ViewGroup) {
 
     /** Marca visualmente cuál de las dos opciones está elegida. */
     private fun renderEmployeeChoice() {
+        // Control segmentado: la opción elegida queda en estado `selected`
+        // (tinte azul y borde de 2dp en bg_caja_btn_secondary, texto azul).
         val esEmpleado = captureEmployeeChoice == CustomerType.EMPLEADO
-        captureEmployeeYes?.setBackgroundResource(
-            if (esEmpleado) R.drawable.bg_btn_koaj else R.drawable.bg_koaj_btn_outline_ink
-        )
-        captureEmployeeNo?.setBackgroundResource(
-            if (esEmpleado) R.drawable.bg_koaj_btn_outline_ink else R.drawable.bg_btn_koaj
-        )
+        captureEmployeeYes?.isSelected = esEmpleado
+        captureEmployeeNo?.isSelected = !esEmpleado
     }
 
     /**
@@ -571,6 +661,9 @@ class VendorScreen(private val root: ViewGroup) {
      * lo desplaza solo, y si el campo estaba en la mitad de abajo se queda tapado.
      */
     private fun applyKeyboardHeight(heightPx: Int) {
+        // Las notificaciones flotan sobre el pie: suben con el teclado para seguir a la vista.
+        toastStack?.animate()?.translationY(-heightPx.toFloat())
+            ?.setDuration(ZONE_ENTER_MS)?.setInterpolator(EASE_OUT)?.start()
         val block = contentBlock ?: return
         if (block.paddingBottom == heightPx) return
         block.setPadding(
@@ -618,16 +711,21 @@ class VendorScreen(private val root: ViewGroup) {
     private fun applyCustomerType(state: ConsentSharedState.State) {
         val projection = state.customerTypeProjection
         if (projection == null) {
-            // Antes de capturar el documento no hay nada que afirmar.
-            customerTypeBlock?.visibility = View.GONE
+            // Antes de capturar el documento no hay nada que afirmar: el apartado
+            // queda en su sitio (al lado del documento) con "—".
+            customerTypeBlock?.visibility = View.VISIBLE
+            customerTypeValue?.setText(R.string.consent_empty_placeholder)
+            customerTypeValue?.setTextColor(context.getColor(R.color.caja_text_muted))
+            customerTypeHint?.text = ""
             return
         }
         customerTypeBlock?.visibility = View.VISIBLE
         customerTypeValue?.text = projection.type.displayName
         customerTypeValue?.setTextColor(
             context.getColor(
-                if (projection.type == CustomerType.VIP) R.color.koaj_accent_gold_strong
-                else R.color.koaj_text_ink
+                // VIP se distingue con el azul de acción (6.2:1 sobre el gris del apartado).
+                if (projection.type == CustomerType.VIP) R.color.caja_primary
+                else R.color.caja_text
             )
         )
         customerTypeHint?.setText(
@@ -679,8 +777,91 @@ class VendorScreen(private val root: ViewGroup) {
         applyScenario(state.scenario)
         mirror.apply(state.customer)
         mirror.setEditable(state.stage.allowsVendorEdit)
+        applyRecord(state)
         applyWarning(state.warning)
         applyValidation(state)
+    }
+
+    /**
+     * Ficha del riel: iniciales, nombre y documento tal como van quedando. Es
+     * solo lectura y se repinta en cada tecla, así que no anima nada.
+     */
+    private fun applyRecord(state: ConsentSharedState.State) {
+        val customer = state.customer
+        val name = customer.customerName.trim()
+        val initials = name.split(Regex("\\s+"))
+            .filter { it.isNotEmpty() && it.first().isLetter() }
+            .take(2)
+            .joinToString("") { it.first().uppercaseChar().toString() }
+        recordName?.text = name.ifEmpty { context.getString(R.string.caja_record_placeholder) }
+        recordName?.setTextColor(
+            context.getColor(if (name.isEmpty()) R.color.caja_text_muted else R.color.caja_text)
+        )
+        recordInitials?.text = initials
+        recordInitials?.visibility = if (initials.isEmpty()) View.GONE else View.VISIBLE
+        recordIcon?.visibility = if (initials.isEmpty()) View.VISIBLE else View.GONE
+
+        val numero = customer.fiscalId?.trim().orEmpty()
+        val tipo = TipoDocumentoMapper.toFullName(customer.fiscalDocumentType)
+        recordDoc?.text = when {
+            numero.isEmpty() -> context.getString(R.string.caja_record_doc_placeholder)
+            tipo.isNullOrBlank() -> numero
+            else -> "$tipo · $numero"
+        }
+    }
+
+    /**
+     * Notificación flotante: entra deslizándose desde la derecha con una
+     * curva exponencial y sale hacia el mismo lado. La pila
+     * (`animateLayoutChanges`) reacomoda a las demás. Idempotente.
+     */
+    private fun showToast(toast: View) {
+        if (toast.visibility == View.VISIBLE && toast.tag != TOAST_LEAVING) return
+        toast.animate().cancel()
+        toast.tag = null
+        val slide = TOAST_SLIDE_DP * context.resources.displayMetrics.density
+        if (toast.visibility != View.VISIBLE) {
+            toast.alpha = 0f
+            toast.translationX = slide
+            toast.visibility = View.VISIBLE
+        }
+        toast.animate()
+            .alpha(1f)
+            .translationX(0f)
+            .setStartDelay(0L)
+            .setDuration(TOAST_ENTER_MS)
+            .setInterpolator(EASE_OUT)
+            .start()
+    }
+
+    private fun hideToast(toast: View) {
+        if (toast.visibility != View.VISIBLE || toast.tag == TOAST_LEAVING) return
+        toast.tag = TOAST_LEAVING
+        val slide = TOAST_SLIDE_DP * context.resources.displayMetrics.density
+        toast.animate()
+            .alpha(0f)
+            .translationX(slide * 0.6f)
+            .setStartDelay(0L)
+            .setDuration(TOAST_EXIT_MS)
+            .setInterpolator(android.view.animation.AccelerateInterpolator(1.4f))
+            .withEndAction {
+                if (toast.tag == TOAST_LEAVING) {
+                    toast.visibility = View.GONE
+                    toast.tag = null
+                }
+            }
+            .start()
+    }
+
+    /** Cambia el texto de una notificación ya visible con un relevo corto. */
+    private fun swapToastText(body: TextView, text: CharSequence) {
+        if (body.text?.toString() == text.toString()) return
+        val visible = (body.parent?.parent as? View)?.visibility == View.VISIBLE
+        body.text = text
+        if (visible) {
+            body.alpha = 0.35f
+            body.animate().alpha(1f).setDuration(TITLE_SWAP_MS).setInterpolator(EASE_OUT).start()
+        }
     }
 
     private fun applyStage(state: ConsentSharedState.State) {
@@ -703,8 +884,21 @@ class VendorScreen(private val root: ViewGroup) {
             ConsentStage.DONE ->
                 R.string.vendor_title_done to R.string.vendor_subtitle_done
         }
-        title?.setText(titleRes)
-        subtitle?.setText(subtitleRes)
+        val newTitle = context.getString(titleRes)
+        if (title?.text?.toString() != newTitle) {
+            title?.text = newTitle
+            subtitle?.setText(subtitleRes)
+            // El cambio de etapa se lee como un relevo del rótulo, no como un salto.
+            listOfNotNull(title, subtitle).forEach { v ->
+                v.alpha = 0f
+                v.translationY = 4f * context.resources.displayMetrics.density
+                v.animate().alpha(1f).translationY(0f)
+                    .setDuration(TITLE_SWAP_MS).setInterpolator(EASE_OUT).start()
+            }
+        } else {
+            subtitle?.setText(subtitleRes)
+        }
+        applySteps(stage)
 
         icon?.setImageResource(
             when (stage) {
@@ -770,11 +964,68 @@ class VendorScreen(private val root: ViewGroup) {
 
         // Captura y espejo se alternan: son dos pasos distintos del cajero.
         val capturing = stage == ConsentStage.AWAITING_DOCUMENT
-        docCapture?.visibility = if (capturing) View.VISIBLE else View.GONE
+        setZoneVisible(docCapture, capturing)
         if (capturing) {
-            mirrorScroll?.visibility = View.GONE
+            setZoneVisible(mirrorScroll, false)
             prefillCaptureFromPos(state)
             captureDocId?.requestFocus()
+        }
+    }
+
+    /**
+     * Solo presentación: la etapa ya resuelta se lee como paso de la cinta.
+     * Hecho = rótulo claro y cinta dorada; actual = rótulo blanco y cinta dorada;
+     * pendiente = rótulo tenue y cinta de tinta elevada.
+     */
+    private fun applySteps(stage: ConsentStage) {
+        val current = when (stage) {
+            ConsentStage.STARTING,
+            ConsentStage.AWAITING_VENDOR_APPROVAL,
+            ConsentStage.AWAITING_DOCUMENT,
+            ConsentStage.VALIDATING_DIAN -> 0
+            ConsentStage.FILLING,
+            ConsentStage.CONSUMIDOR_FINAL -> 1
+            ConsentStage.LOYALTY -> 2
+            ConsentStage.DONE -> steps.size
+        }
+        steps.forEachIndexed { index, (label, bar) ->
+            val (labelColor, barColor) = when {
+                // Hecho en verde de estado, actual en el azul de acción, pendiente en filete.
+                index < current -> R.color.caja_text_soft to R.color.caja_success
+                index == current -> R.color.caja_text to R.color.caja_primary
+                else -> R.color.caja_text_muted to R.color.caja_rule
+            }
+            label?.setTextColor(context.getColor(labelColor))
+            label?.typeface = if (index == current) fontSemibold else fontMedium
+            bar?.let { tintStepBar(it, context.getColor(barColor)) }
+        }
+    }
+
+    private val fontSemibold by lazy {
+        androidx.core.content.res.ResourcesCompat.getFont(context, R.font.plex_sans_semibold)
+    }
+    private val fontMedium by lazy {
+        androidx.core.content.res.ResourcesCompat.getFont(context, R.font.plex_sans_medium)
+    }
+
+    /**
+     * Cambia el color de la cinta con una transición corta. El destino se
+     * guarda en el `tag` porque `render` llega en cada tecla: sin eso cada
+     * emisión relanzaría la transición desde un color intermedio.
+     */
+    private fun tintStepBar(bar: View, target: Int) {
+        if (bar.tag == target) return
+        val from = (bar.background as? android.graphics.drawable.ColorDrawable)?.color
+        bar.tag = target
+        if (from == null || !bar.isLaidOut) {
+            bar.setBackgroundColor(target)
+            return
+        }
+        android.animation.ValueAnimator.ofArgb(from, target).apply {
+            duration = STEP_TINT_MS
+            interpolator = EASE_OUT
+            addUpdateListener { bar.setBackgroundColor(it.animatedValue as Int) }
+            start()
         }
     }
 
@@ -902,11 +1153,11 @@ class VendorScreen(private val root: ViewGroup) {
     private fun applyPrompt(state: ConsentSharedState.State) {
         val card = prompt ?: return
         if (!state.stage.isVendorGate) {
-            card.visibility = View.GONE
+            setZoneVisible(card, false)
             // El espejo sólo vuelve si no estamos capturando el documento;
             // `applyStage` lo esconde en ese paso.
             if (state.stage != ConsentStage.AWAITING_DOCUMENT) {
-                mirrorScroll?.visibility = View.VISIBLE
+                setZoneVisible(mirrorScroll, true)
             }
             return
         }
@@ -922,7 +1173,7 @@ class VendorScreen(private val root: ViewGroup) {
             }
             // Escenario 3: ya existe, sólo faltan datos.
             state.scenario == CustomerScenario.COMPLETE_EXISTING -> {
-                val faltan = CustomerValidator.validate(state.customer).summary
+                val faltan = CustomerValidator.validateForSave(state.customer).summary
                 promptTitle?.setText(R.string.vendor_prompt_complete_title)
                 promptSubtitle?.text =
                     context.getString(R.string.vendor_prompt_complete_subtitle, faltan)
@@ -945,12 +1196,8 @@ class VendorScreen(private val root: ViewGroup) {
             }
         }
 
-        mirrorScroll?.visibility = View.GONE
-        if (card.visibility != View.VISIBLE) {
-            card.alpha = 0f
-            card.visibility = View.VISIBLE
-            card.animate().alpha(1f).setDuration(200).start()
-        }
+        setZoneVisible(mirrorScroll, false)
+        setZoneVisible(card, true)
     }
 
     private fun applyScenario(scenario: CustomerScenario) {
@@ -968,50 +1215,29 @@ class VendorScreen(private val root: ViewGroup) {
         // cajero dispararían el bounce).
         if (view.text?.toString() == newText) return
         view.text = newText
-        // Bounce premium: scale 1.0 → 0.85 → 1.06 → 1.0 con overshoot.
-        // Es la "alarma silenciosa" del cambio de estado: el cajero nota
-        // el badge actualizarse aunque no lo esté mirando directamente.
-        view.scaleX = 0.85f
-        view.scaleY = 0.85f
-        view.alpha = 0.7f
+        // Relevo discreto: el chip entra desde un 94% con desvanecido. Se nota
+        // el cambio de escenario sin el rebote de antes.
+        view.scaleX = 0.94f
+        view.scaleY = 0.94f
+        view.alpha = 0f
         view.animate()
             .scaleX(1f)
             .scaleY(1f)
             .alpha(1f)
-            .setDuration(380)
-            .setInterpolator(android.view.animation.OvershootInterpolator(1.8f))
+            .setDuration(BADGE_SWAP_MS)
+            .setInterpolator(EASE_OUT)
             .start()
     }
 
+    /** Avisos del flujo (DIAN caída, documento no registrado…) como notificación flotante. */
     private fun applyWarning(text: String?) {
-        val view = warning ?: return
+        val body = warning ?: return
+        val toast = warningToast ?: return
         if (text.isNullOrBlank()) {
-            // Fade out premium antes de ocultar — sin él, el banner
-            // desaparece de golpe y se siente como un parpadeo.
-            if (view.visibility == View.VISIBLE) {
-                view.animate()
-                    .alpha(0f)
-                    .setDuration(WARNING_FADE_MS)
-                    .setInterpolator(android.view.animation.AccelerateInterpolator(1.2f))
-                    .withEndAction { view.visibility = View.GONE }
-                    .start()
-            }
+            hideToast(toast)
         } else {
-            view.text = text
-            // Fade in + slide-down premium: aparece "desde el header" en
-            // vez de saltar dentro. Si ya está visible, sólo actualizar
-            // el texto sin re-animar.
-            if (view.visibility != View.VISIBLE) {
-                view.alpha = 0f
-                view.translationY = -8f
-                view.visibility = View.VISIBLE
-                view.animate()
-                    .alpha(1f)
-                    .translationY(0f)
-                    .setDuration(WARNING_FADE_MS)
-                    .setInterpolator(android.view.animation.DecelerateInterpolator(1.1f))
-                    .start()
-            }
+            swapToastText(body, text)
+            showToast(toast)
         }
     }
 
@@ -1021,6 +1247,7 @@ class VendorScreen(private val root: ViewGroup) {
      */
     private fun applyValidation(state: ConsentSharedState.State) {
         val hint = validationHint ?: return
+        val toast = validationToast ?: return
         // Sólo nos importa la validación cuando el cajero puede editar el
         // formulario. En Consumidor Final los datos son fijos y en
         // AWAITING_VENDOR_APPROVAL / AWAITING_DOCUMENT el botón Aceptar no es
@@ -1028,7 +1255,7 @@ class VendorScreen(private val root: ViewGroup) {
         // propia comprobación de `numero.length < MIN_DOC_ID`).
         if (!state.stage.allowsVendorEdit ||
             state.scenario == CustomerScenario.CONSUMIDOR_FINAL) {
-            hint.visibility = View.GONE
+            hideToast(toast)
             // Cuando el escenario es EDIT con datos completos (lo que ve el
             // cajero al lupita), el Aceptar queda habilitado: no tiene que
             // reescribir nada.
@@ -1040,13 +1267,16 @@ class VendorScreen(private val root: ViewGroup) {
             }
             return
         }
-        val result = CustomerValidator.validate(state.customer)
+        // Se valida lo que se va a guardar (ya limpio): la suciedad invisible del
+        // maestro no bloquea; el aviso dice exactamente qué corregir.
+        val result = CustomerValidator.validateForSave(state.customer)
         if (result.isValid) {
-            hint.visibility = View.GONE
+            hideToast(toast)
             btnAccept?.isEnabled = true
         } else {
-            hint.text = context.getString(R.string.validation_hint_prefix, result.summary)
-            hint.visibility = View.VISIBLE
+            // Una línea por dato: se lee de un vistazo qué corregir.
+            swapToastText(hint, result.issues.joinToString("\n") { "•  ${it.message}" })
+            showToast(toast)
             btnAccept?.isEnabled = false
         }
     }
@@ -1066,7 +1296,7 @@ class VendorScreen(private val root: ViewGroup) {
         list.removeAllViews()
         val inflater = LayoutInflater.from(context)
         TipoDocumentoMapper.supportedFullNames().forEach { tipo ->
-            val row = inflater.inflate(R.layout.widget_doc_type_row, list, false)
+            val row = inflater.inflate(R.layout.widget_caja_doc_type_row, list, false)
             row.findViewById<TextView>(R.id.doc_type_row_label).text = tipo
             row.findViewById<ImageView>(R.id.doc_type_row_check).visibility =
                 if (tipo == actual) View.VISIBLE else View.GONE
@@ -1086,10 +1316,20 @@ class VendorScreen(private val root: ViewGroup) {
         picker.alpha = 0f
         picker.visibility = View.VISIBLE
         picker.bringToFront()
-        picker.animate().alpha(1f).setDuration(180).start()
+        picker.animate().alpha(1f).setDuration(180).setInterpolator(EASE_OUT).start()
+        // El diálogo se asienta desde un 96%: aparece en su sitio, no "salta".
+        picker.findViewById<View>(R.id.doc_type_picker_card)?.let { card ->
+            card.scaleX = 0.96f
+            card.scaleY = 0.96f
+            card.translationY = 8f * context.resources.displayMetrics.density
+            card.animate().scaleX(1f).scaleY(1f).translationY(0f)
+                .setDuration(PICKER_ENTER_MS).setInterpolator(EASE_OUT).start()
+        }
     }
 
     private fun hideDocTypePicker() {
+        // Elegir o cerrar el selector apaga el resaltado del tipo en la pantalla del cliente.
+        if (ConsentSharedState.current.activeField == "fiscalDocumentType") ConsentSharedState.setActiveField(null)
         val picker = docTypePicker ?: return
         picker.animate()
             .alpha(0f)
@@ -1111,6 +1351,8 @@ class VendorScreen(private val root: ViewGroup) {
         podAnimator = null
         completionAnimator?.dispose()
         completionAnimator = null
+        liveDotPulse?.cancel()
+        liveDotPulse = null
         stopHeartSpin()
         stopHeaderGlowPulse()
     }
@@ -1119,13 +1361,39 @@ class VendorScreen(private val root: ViewGroup) {
         /** Mismo mínimo que valida `CustomerValidator` para el documento. */
         const val MIN_DOC_ID = 4
 
-        // Stagger entry: header → main → footer.
-        const val STAGGER_BLOCK_DELAY_MS = 100L
-        const val STAGGER_BLOCK_DURATION_MS = 380L
-        val STAGGER_BLOCK_DISTANCES = floatArrayOf(24f, 32f, 18f)
+        /** Ease-out exponencial: arranca rápido y se asienta sin rebote. */
+        val EASE_OUT = android.view.animation.PathInterpolator(0.16f, 1f, 0.3f, 1f)
 
-        // Warning banner fade in/out.
-        const val WARNING_FADE_MS = 240L
+        // Stagger entry: header → main → footer.
+        const val STAGGER_BLOCK_DELAY_MS = 70L
+        const val STAGGER_BLOCK_DURATION_MS = 420L
+        val STAGGER_BLOCK_DISTANCES_DP = floatArrayOf(-6f, 14f, 14f, 10f)
+
+        // Notificaciones flotantes.
+        const val TOAST_ENTER_MS = 460L
+        const val TOAST_EXIT_MS = 220L
+        const val TOAST_SLIDE_DP = 48f
+
+        // Relevo de zonas (captura / compuerta / formulario).
+        const val ZONE_ENTER_MS = 320L
+        const val ZONE_ENTER_DP = 12f
+
+        // Relevos de rótulos y chip, transición de la cinta, diálogo.
+        const val TITLE_SWAP_MS = 260L
+        const val BADGE_SWAP_MS = 240L
+        const val STEP_TINT_MS = 320L
+        const val PICKER_ENTER_MS = 260L
+
+        // Presión de botones.
+        const val PRESS_SCALE = 0.98f
+        const val PRESS_IN_MS = 90L
+        const val PRESS_OUT_MS = 160L
+
+        // Punto de "sincronizado en vivo".
+        const val LIVE_DOT_MS = 1_800L
+
+        /** Marca de la notificación que está saliendo (en `View.tag`). */
+        const val TOAST_LEAVING = "toast_leaving"
 
         // Header glow breathing (LOYALTY).
         const val HEADER_GLOW_PULSE_MS = 2_200L
@@ -1652,10 +1920,10 @@ private class CompletionAnimator(
         val cardTopY = screenHeight / 2 - dp(context, 220)
 
         val drawables = listOf(
-            R.drawable.bg_done_particle_gold,
-            R.drawable.bg_done_particle_gold_soft,
-            R.drawable.bg_done_particle_ink,
-            R.drawable.bg_done_particle_cream
+            R.drawable.bg_caja_particle_primary,
+            R.drawable.bg_caja_particle_sky,
+            R.drawable.bg_caja_particle_navy,
+            R.drawable.bg_caja_particle_success
         )
         val animators = mutableListOf<android.animation.Animator>()
         repeat(CONFETTI_COUNT) { i ->

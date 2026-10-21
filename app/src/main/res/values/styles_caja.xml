@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Estilos del sistema «Caja» (pantalla del cajero y ficha del módulo).
+    Voz única: IBM Plex Sans en tres pesos. Sin mayúsculas condensadas: la
+    jerarquía la dan el peso y el tamaño. Tokens en colors_caja.xml.
+-->
+<resources>
+
+    <!-- ── Banda ─────────────────────────────────────────────────────── -->
+    <style name="CajaBandTitle">
+        <item name="android:fontFamily">@font/plex_sans_semibold</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">-0.005</item>
+        <item name="android:textColor">@color/caja_on_navy</item>
+        <item name="android:textSize">22sp</item>
+    </style>
+
+    <style name="CajaBandSubtitle">
+        <item name="android:fontFamily">@font/plex_sans_regular</item>
+        <item name="android:textColor">@color/caja_on_navy_soft</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Rótulo de paso. El color lo pinta VendorScreen.applySteps. -->
+    <style name="CajaStepLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:fontFamily">@font/plex_sans_medium</item>
+        <item name="android:textColor">@color/caja_on_navy_dim</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="CajaStepBar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">3dp</item>
+        <item name="android:background">@color/caja_navy_raised</item>
+    </style>
+
+    <style name="CajaBadge">
+        <item name="android:background">@drawable/bg_caja_badge</item>
+        <item name="android:fontFamily">@font/plex_sans_semibold</item>
+        <item name="android:letterSpacing">0.06</item>
+        <item name="android:paddingStart">12dp</item>
+        <item name="android:paddingEnd">12dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/caja_on_navy</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <!-- ── Contenido ─────────────────────────────────────────────────── -->
+    <style name="CajaHeading">
+        <item name="android:fontFamily">@font/plex_sans_semibold</item>
+        <item name="android:letterSpacing">-0.01</item>
+        <item name="android:lineSpacingMultiplier">1.08</item>
+        <item name="android:textColor">@color/caja_text</item>
+        <item name="android:textSize">26sp</item>
+    </style>
+
+    <style name="CajaBody">
+        <item name="android:fontFamily">@font/plex_sans_regular</item>
+        <item name="android:lineSpacingExtra">3dp</item>
+        <item name="android:textColor">@color/caja_text_soft</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="CajaSectionTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/plex_sans_semibold</item>
+        <item name="android:textColor">@color/caja_text</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+
+    <!-- Rótulo de campo en tipo oración: identifica sin gritar. -->
+    <style name="CajaFieldLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">6dp</item>
+        <item name="android:fontFamily">@font/plex_sans_medium</item>
+        <item name="android:textColor">@color/caja_text_soft</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!-- Rótulo de sección del riel: la única mayúscula espaciada del sistema. -->
+    <style name="CajaRailLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/plex_sans_semibold</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/caja_text_muted</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <!-- Chip de estado sobre blanco. -->
+    <style name="CajaChip">
+        <item name="android:background">@drawable/bg_caja_chip</item>
+        <item name="android:fontFamily">@font/plex_sans_semibold</item>
+        <item name="android:letterSpacing">0.04</item>
+        <item name="android:paddingStart">10dp</item>
+        <item name="android:paddingEnd">10dp</item>
+        <item name="android:paddingTop">4dp</item>
+        <item name="android:paddingBottom">4dp</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/caja_primary</item>
+        <item name="android:textSize">11sp</item>
+    </style>
+
+    <!-- Paso del riel: indicador vertical + rótulo + ayuda. Colores en VendorScreen.applySteps. -->
+    <style name="CajaStepIndicator">
+        <item name="android:layout_width">4dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_marginEnd">14dp</item>
+        <item name="android:background">@color/caja_rule</item>
+    </style>
+
+    <style name="CajaStepTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/plex_sans_medium</item>
+        <item name="android:textColor">@color/caja_text_muted</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="CajaStepHint">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">1dp</item>
+        <item name="android:fontFamily">@font/plex_sans_regular</item>
+        <item name="android:textColor">@color/caja_text_muted</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="CajaToastTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/plex_sans_semibold</item>
+        <item name="android:textColor">@color/caja_text</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="CajaToastBody">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:fontFamily">@font/plex_sans_regular</item>
+        <item name="android:lineSpacingExtra">4dp</item>
+        <item name="android:textColor">@color/caja_text_soft</item>
+        <item name="android:textSize">14sp</item>
+    </style>
+
+    <!--
+        Campo de caja: caja completa y no solo una línea, para que el blanco táctil
+        sea todo el rectángulo. 52dp de alto mínimo en una pantalla de mostrador.
+    -->
+    <style name="CajaFieldInput">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">52dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:paddingTop">10dp</item>
+        <item name="android:paddingBottom">10dp</item>
+        <item name="android:background">@drawable/bg_caja_field</item>
+        <item name="android:fontFamily">@font/plex_sans_regular</item>
+        <item name="android:hint">@string/consent_empty_placeholder</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/caja_text</item>
+        <item name="android:textColorHint">@color/caja_text_muted</item>
+        <item name="android:textCursorDrawable">@drawable/bg_caja_cursor</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+
+    <!-- El número de documento: cifras tabulares, se compara de un vistazo. -->
+    <style name="CajaFieldInput.Document">
+        <item name="android:fontFamily">@font/plex_sans_semibold</item>
+        <item name="android:fontFeatureSettings">"tnum"</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textSize">19sp</item>
+    </style>
+
+    <!-- Separación entre campos de una columna. -->
+    <style name="CajaFieldGap">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">20dp</item>
+    </style>
+
+    <!-- ── Acciones ──────────────────────────────────────────────────── -->
+    <style name="CajaButton">
+        <item name="android:fontFamily">@font/plex_sans_semibold</item>
+        <item name="android:gravity">center</item>
+        <item name="android:letterSpacing">0.01</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">24dp</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="CajaButton.Primary">
+        <item name="android:background">@drawable/bg_caja_btn_primary</item>
+        <item name="android:textColor">@color/caja_btn_primary_text</item>
+    </style>
+
+    <style name="CajaButton.Secondary">
+        <item name="android:background">@drawable/bg_caja_btn_secondary</item>
+        <item name="android:fontFamily">@font/plex_sans_medium</item>
+        <item name="android:textColor">@color/caja_btn_secondary_text</item>
+    </style>
+</resources>

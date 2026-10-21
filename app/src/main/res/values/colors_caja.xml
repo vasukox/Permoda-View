@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Sistema «Caja»: la pantalla del CAJERO (display principal) y la ficha del módulo.
+
+    Azul corporativo de baja saturación: marino para la banda, un solo azul de
+    acción y grises fríos para el trabajo. Es independiente a propósito: la
+    pantalla del cliente usa `vitrina_*` y `koaj_*` y no debe cambiar.
+
+    Reglas de uso:
+    · Marino solo para la banda superior.
+    · `caja_primary` es la acción y el foco; nada más se pinta de ese azul.
+    · Verde, rojo y ámbar solo para estados.
+    Los contrastes los vigila CajaPaletteContrastTest.
+-->
+<resources>
+    <!-- Banda -->
+    <color name="caja_navy">#FF0F2340</color>
+    <color name="caja_navy_raised">#FF1C355C</color>
+    <color name="caja_navy_line">#FF2A4670</color>
+    <color name="caja_on_navy">#FFFFFFFF</color>
+    <color name="caja_on_navy_soft">#FFB9C6DA</color>
+    <color name="caja_on_navy_dim">#FF8496B2</color>
+    <!-- Paso actual y progreso sobre la banda -->
+    <color name="caja_accent_on_navy">#FF6EA1FF</color>
+
+    <!-- Acción -->
+    <color name="caja_primary">#FF1F55C0</color>
+    <color name="caja_primary_pressed">#FF18449C</color>
+    <color name="caja_primary_tint">#FFEAF1FD</color>
+    <color name="caja_primary_ripple">#291F55C0</color>
+
+    <!-- Trabajo -->
+    <color name="caja_ground">#FFF3F5F8</color>
+    <color name="caja_surface">#FFFFFFFF</color>
+    <color name="caja_rule">#FFE1E6ED</color>
+    <!-- 3.2:1 sobre blanco: borde de campo (componente de UI) -->
+    <color name="caja_field_border">#FF8492A6</color>
+    <color name="caja_text">#FF0F1B2D</color>
+    <color name="caja_text_soft">#FF3F4D63</color>
+    <color name="caja_text_muted">#FF5E6B80</color>
+    <color name="caja_disabled">#FFE8ECF1</color>
+
+    <!-- Estados -->
+    <color name="caja_success">#FF13764B</color>
+    <color name="caja_success_tint">#FFE7F4EE</color>
+    <color name="caja_error">#FFB42318</color>
+    <color name="caja_error_tint">#FFFDECEA</color>
+    <color name="caja_warning_text">#FF5C3D06</color>
+    <color name="caja_warning_tint">#FFFFF5E1</color>
+    <color name="caja_warning_border">#FFF0C877</color>
+
+    <color name="caja_scrim">#990B1A30</color>
+    <color name="caja_shadow">#1F0F2340</color>
+</resources>

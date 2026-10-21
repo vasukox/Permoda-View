@@ -53,7 +53,7 @@
             android:name=".entry.ModuleInfoActivity"
             android:exported="true"
             android:label="@string/app_name"
-            android:theme="@style/Theme.PermodaView.Driver">
+            android:theme="@style/Theme.PermodaView.Info">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -162,13 +162,19 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-        <!-- Handlers inertes para instalaciones que conserven un behaviour anterior. -->
+        <!-- Handler inerte para instalaciones que conserven un behaviour anterior. -->
         <activity android:name=".entry.CustomerSelectionActivity"
             android:exported="true" android:theme="@style/Theme.PermodaView.Invisible">
             <intent-filter>
                 <action android:name="icg.actions.document.${icgApkName}.SELECT_CUSTOMER" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
+        </activity>
+
+        <!-- Validación del cliente al totalizar (CallBeforeTotalizeSale + CanContinue=false).
+             Sin UI: si el cliente no cumple, HioPos muestra nuestro ErrorMessage y no cobra. -->
+        <activity android:name=".entry.TotalizeValidationActivity"
+            android:exported="true" android:theme="@style/Theme.PermodaView.Invisible">
             <intent-filter>
                 <action android:name="icg.actions.document.${icgApkName}.MODIFY_DOCUMENT" />
                 <category android:name="android.intent.category.DEFAULT" />

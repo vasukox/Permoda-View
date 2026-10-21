@@ -49,7 +49,13 @@ object ConsentSharedState {
          */
         val customerTypeProjection: CustomerTypeResolver.TypeProjection? = null,
         /** La compuerta actual es el recordatorio "¿ya lo buscaste?" del botón Nuevo cliente. */
-        val searchReminder: Boolean = false
+        val searchReminder: Boolean = false,
+        /**
+         * Campo que el cajero está escribiendo ("customerName", "fiscalDocumentType",
+         * "fiscalId", "email" o "phone"), o `null`. La pantalla del cliente lo
+         * resalta para que se vea dónde se escribe.
+         */
+        val activeField: String? = null
     )
 
     private val _state = MutableStateFlow(State())
@@ -95,6 +101,10 @@ object ConsentSharedState {
 
     fun setSearchReminder(active: Boolean) {
         _state.update { it.copy(searchReminder = active) }
+    }
+
+    fun setActiveField(key: String?) {
+        _state.update { it.copy(activeField = key) }
     }
 
     /** El vendedor dio una orden desde su pantalla. */

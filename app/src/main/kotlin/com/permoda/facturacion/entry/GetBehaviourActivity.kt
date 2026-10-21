@@ -16,11 +16,10 @@ class GetBehaviourActivity : Activity() {
 
             // --- Lo que hace funcionar a PermodaView ---
             ApiActions.CUSTOMER_BEHAVIOUR.forEach { (key, value) -> putExtra(key, value) }
-            putExtra(ApiActions.Behaviour.CAN_CONTINUE, true)
+            ApiActions.TOTALIZE_BEHAVIOUR.forEach { (key, value) -> putExtra(key, value) }
             putExtra(ApiActions.Behaviour.CAN_AUDIT, true)
 
             // --- El resto, explícitamente en false ---
-            putExtra(ApiActions.Behaviour.CALL_BEFORE_TOTALIZE_SALE, false)
             putExtra(ApiActions.Behaviour.CALL_BEFORE_TOTALIZE_PURCHASE, false)
             putExtra(ApiActions.Behaviour.CALL_BEFORE_TOTALIZE_ORDER, false)
             putExtra(ApiActions.Behaviour.CALL_BEFORE_FINALIZE_STOCK_ADJUSTMENT, false)
@@ -47,7 +46,7 @@ class GetBehaviourActivity : Activity() {
             "GET_BEHAVIOR ← caller=${callingPackage ?: "desconocido"} " +
                 "action=$receivedAction esperada=${ApiActions.GET_BEHAVIOR} " +
                 "→ CallOnCustomerSelection=false ManageCustomer=true CreateUpdateCustomer=false " +
-                "CanContinue=true canAudit=true (resto false)"
+                "CallBeforeTotalizeSale=true CanContinue=false canAudit=true (resto false)"
         )
         setResult(RESULT_OK, result)
         finish()

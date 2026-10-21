@@ -585,9 +585,53 @@ class ConsentScreen(private val root: ViewGroup) {
 
     /** Pinta el valor en la fila de lectura (placeholder si está vacío). */
     private fun paintDisplayValue(row: FieldRow, value: String) {
+        // En el campo que el cajero escribe, un cursor dorado al final dice
+        // "aquí se está escribiendo" y deja ver cada letra a medida que llega.
+        if (row === activeRow()) {
+            row.valueView.text = android.text.SpannableStringBuilder(value).apply {
+                val start = length
+                append(CARET)
+                setSpan(
+                    android.text.style.ForegroundColorSpan(context.getColor(R.color.vitrina_gold)),
+                    start, length, android.text.Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+                )
+            }
+            row.valueView.alpha = 1f
+            return
+        }
         row.valueView.text = value.takeIf { it.isNotBlank() }
             ?: context.getString(R.string.consent_empty_placeholder)
         row.valueView.alpha = if (value.isBlank()) 0.45f else 1f
+    }
+
+    /** Campo que el cajero está escribiendo (ver [ConsentSharedState.State.activeField]). */
+    private var activeFieldKey: String? = null
+
+    private fun activeRow(): FieldRow? = activeFieldKey?.let { fields[it] }
+
+    /**
+     * Resalta el campo que el cajero escribe: placa hueso con filete dorado,
+     * rótulo en dorado de texto y cursor al final del valor. En la captura del
+     * documento, el número grande toma el subrayado dorado.
+     */
+    fun setActiveField(key: String?) {
+        if (key == activeFieldKey) return
+        val previous = activeRow()
+        activeFieldKey = key
+        val current = activeRow()
+        listOfNotNull(previous, current).distinct().forEach { row ->
+            val active = row === current
+            row.displayRow.setBackgroundResource(
+                if (active) R.drawable.bg_vitrina_row_active else R.drawable.bg_row_ripple
+            )
+            paintDisplayValue(row, row.currentValue)
+        }
+        paintFieldErrors()
+        awaitingDocId?.isActivated = key == "fiscalId"
+        // Que el campo activo quede a la vista aunque el formulario tenga scroll.
+        current?.displayRow?.let { row ->
+            row.post { row.requestRectangleOnScreen(android.graphics.Rect(0, 0, row.width, row.height), false) }
+        }
     }
 
     private fun applyCustomer(c: CustomerData) {
@@ -885,7 +929,7 @@ class ConsentScreen(private val root: ViewGroup) {
      * etiquetas en rojo, hint bajo el botón, y el propio botón Aceptar.
      */
     private fun refreshValidation() {
-        lastValidation = CustomerValidator.validate(snapshotCustomer(), validationRules)
+        lastValidation = CustomerValidator.validateForSave(snapshotCustomer(), validationRules)
         paintFieldErrors()
         updateAcceptEnabled()
     }
@@ -895,9 +939,14 @@ class ConsentScreen(private val root: ViewGroup) {
         fields.forEach { (key, row) ->
             val validatorField = fieldKeyToValidatorField[key]
             val isInvalid = validatorField != null && validatorField in invalid
+            // Mientras el cajero escribe en el campo, manda el resaltado: marcarlo
+            // en rojo letra por letra sería ruido. Al salir vuelve la validación.
             row.labelView.setTextColor(
-                if (isInvalid) context.getColor(R.color.koaj_state_invalid)
-                else row.labelDefaultColor
+                when {
+                    key == activeFieldKey -> context.getColor(R.color.vitrina_gold_text)
+                    isInvalid -> context.getColor(R.color.koaj_state_invalid)
+                    else -> row.labelDefaultColor
+                }
             )
         }
     }
@@ -917,20 +966,9 @@ class ConsentScreen(private val root: ViewGroup) {
         btnAccept?.isEnabled = !blocked
         btnAccept?.animate()?.alpha(if (blocked) 0.4f else 1f)?.setDuration(180)?.start()
 
-        val hint = validationHint ?: return
-        // Mientras el cliente teclea en un campo no lo regañamos por ese
-        // campo a medio escribir; el resto de avisos sí se muestran.
-        val message = if (anyFieldEditing) "" else lastValidation.summary
-        if (message.isBlank()) {
-            hint.visibility = View.GONE
-        } else {
-            hint.text = context.getString(R.string.validation_hint_prefix, message)
-            if (hint.visibility != View.VISIBLE) {
-                hint.alpha = 0f
-                hint.visibility = View.VISIBLE
-                hint.animate().alpha(1f).setDuration(180).start()
-            }
-        }
+        // "Para continuar: …" es instrucción para el cajero: se muestra solo en su
+        // pantalla (notificación de VendorScreen). El público no ve qué falta.
+        validationHint?.visibility = View.GONE
     }
 
     private fun wireListeners() {
@@ -1387,6 +1425,9 @@ class ConsentScreen(private val root: ViewGroup) {
     }
 
     private companion object {
+        /** Cursor fino (U+258F) que sigue al texto del campo activo. */
+        const val CARET = "▏"
+
         /** Sólo mostramos la cuenta atrás en los últimos segundos. */
         const val COUNTDOWN_VISIBLE_FROM_SECONDS = 6
 

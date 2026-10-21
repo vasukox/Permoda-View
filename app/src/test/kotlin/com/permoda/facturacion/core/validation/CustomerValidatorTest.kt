@@ -101,16 +101,12 @@ class CustomerValidatorTest {
     // ------------------------------------------------------------------
 
     @Test
-    fun `nombre de una sola palabra es invalido`() {
-        val result = CustomerValidator.validate(completo.copy(customerName = "Juan"))
-        assertFalse(result.isValid)
-        assertTrue(result.has(CustomerValidator.Field.NAME))
-    }
-
-    @Test
-    fun `nombre con iniciales sueltas es invalido`() {
-        val result = CustomerValidator.validate(completo.copy(customerName = "J P"))
-        assertFalse(result.isValid)
+    fun `del nombre solo importan los caracteres`() {
+        // Desde el 20-oct-2026 solo se valida el juego de caracteres: una palabra
+        // o iniciales sueltas pasan si son letras.
+        listOf("Juan", "J P").forEach {
+            assertTrue("'$it'", CustomerValidator.validate(completo.copy(customerName = it)).isValid)
+        }
     }
 
     @Test
@@ -133,13 +129,92 @@ class CustomerValidatorTest {
         )
     }
 
+    @Test
+    fun `nombre con tildes enie apostrofo y guion es valido`() {
+        listOf("José Muñoz", "Ana-María O'Neil", "Dra. Lucía Peña", "Jürgen Müller").forEach { bueno ->
+            assertTrue("'$bueno' debería ser válido", CustomerValidator.validate(completo.copy(customerName = bueno)).isValid)
+        }
+    }
+
+    @Test
+    fun `nombre con caracteres especiales se rechaza y los cita`() {
+        mapOf(
+            "Juan Pérez @" to "@",
+            "Juan 😀 Pérez" to "😀",
+            "Juan Pérez 3" to "3",
+            "Juan#Pérez Gómez" to "#",
+            "Juan​Pérez Gómez" to "carácter invisible",
+            "Juan Пётр" to "П"
+        ).forEach { (malo, citado) ->
+            val issue = CustomerValidator.validate(completo.copy(customerName = malo)).issues
+                .single { it.field == CustomerValidator.Field.NAME }
+            assertEquals(CustomerValidator.Reason.INVALID, issue.reason)
+            assertTrue("'$malo' debería citar '$citado': ${issue.message}", issue.message.contains(citado))
+        }
+    }
+
+    @Test
+    fun `los espacios no importan en ningun campo`() {
+        val result = CustomerValidator.validate(completo.copy(
+            customerName = "  Juan\t  Pérez\n",
+            fiscalId = " 1011 086 580 ",
+            email = " juan.perez @gmail.com ",
+            phone = "+57 311 123 4567"
+        ))
+        assertTrue(result.detail, result.isValid)
+    }
+
+    @Test
+    fun `el correo acepta todos los caracteres del estandar`() {
+        listOf("o'brien@mail.com", "a!b#c\$d%e&f*g@mail.co", "x=y?z^_`{|}~@sub.dominio.com.co", "j+etiqueta@x.io")
+            .forEach { assertTrue("'$it'", CustomerValidator.validate(completo.copy(email = it)).isValid) }
+    }
+
+    @Test
+    fun `cedula y telefono son exclusivamente numericos`() {
+        listOf("1.011.086.580", "1011-086580", "10110865A0").forEach {
+            val issue = CustomerValidator.validate(completo.copy(fiscalId = it)).issues.single()
+            assertTrue(issue.message, issue.message.contains("caracteres especiales"))
+        }
+        listOf("(601)1234567", "311-123-4567", "3111234567+").forEach {
+            val issue = CustomerValidator.validate(completo.copy(phone = it)).issues.single()
+            assertTrue(issue.message, issue.message.contains("Solo se aceptan números"))
+        }
+    }
+
+    @Test
+    fun `razon social con NIT admite numeros y signos de empresa`() {
+        val empresa = completo.copy(fiscalDocumentType = "31", fiscalId = "900123456", customerName = "A&B Inversiones 2020, S.A.S.")
+        assertTrue(CustomerValidator.validate(empresa).isValid)
+        assertFalse(
+            "una persona no lleva números en el nombre",
+            CustomerValidator.validate(completo.copy(customerName = "A&B Inversiones 2020")).isValid
+        )
+    }
+
+    @Test
+    fun `nombre en descomposicion unicode se normaliza`() {
+        // "é" escrito como e + tilde combinante (algunos teclados lo mandan así).
+        assertTrue(CustomerValidator.validate(completo.copy(customerName = "José Pérez")).isValid)
+    }
+
     // ------------------------------------------------------------------
     // Correo
     // ------------------------------------------------------------------
 
     @Test
+    fun `correo con caracteres no ascii o puntos dobles se rechaza`() {
+        listOf("muñoz@gmail.com", "juan..perez@gmail.com", "juan@@gmail.com", "juan@.gmail.com", "juan(x)@gmail.com").forEach { malo ->
+            val result = CustomerValidator.validate(completo.copy(email = malo))
+            assertTrue("'$malo' debería ser inválido", result.has(CustomerValidator.Field.EMAIL))
+        }
+        val issue = CustomerValidator.validate(completo.copy(email = "muñoz@gmail.com")).issues.single()
+        assertTrue(issue.message, issue.message.contains("ñ"))
+    }
+
+    @Test
     fun `correos malformados se rechazan`() {
-        listOf("juan", "juan@", "@gmail.com", "juan@gmail", "juan perez@gmail.com")
+        listOf("juan", "juan@", "@gmail.com", "juan@gmail", "juan,perez@gmail.com")
             .forEach { malo ->
                 val result = CustomerValidator.validate(completo.copy(email = malo))
                 assertFalse("'$malo' debería ser inválido", result.isValid)
@@ -219,7 +294,7 @@ class CustomerValidatorTest {
 
     @Test
     fun `telefono con formato colombiano es valido`() {
-        listOf("3111234567", "+57 311 123 4567", "(601) 123-4567")
+        listOf("3111234567", "+57 311 123 4567", "6011234567")
             .forEach { bueno ->
                 assertTrue(
                     "'$bueno' debería ser válido",

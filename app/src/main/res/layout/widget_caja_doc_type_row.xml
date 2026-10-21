@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Fila del selector de tipo de documento en la pantalla del CAJERO (sistema «Caja»).
+    Mismos ids que widget_doc_type_row, que sigue siendo el de la pantalla del cliente.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_caja_row"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center_vertical"
+    android:minHeight="52dp"
+    android:orientation="horizontal"
+    android:paddingHorizontal="12dp"
+    android:paddingVertical="10dp">
+
+    <TextView
+        android:id="@+id/doc_type_row_label"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:fontFamily="@font/plex_sans_medium"
+        android:textColor="@color/caja_text"
+        android:textSize="17sp"
+        tools:text="Cédula de ciudadanía" />
+
+    <ImageView
+        android:id="@+id/doc_type_row_check"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        android:contentDescription="@string/consent_doc_type_selected"
+        android:src="@drawable/ic_check"
+        android:visibility="gone"
+        app:tint="@color/caja_primary"
+        tools:visibility="visible" />
+</LinearLayout>

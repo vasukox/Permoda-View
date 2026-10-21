@@ -11,7 +11,14 @@ import javax.xml.parsers.DocumentBuilderFactory
 /** Codec histórico para regresiones de XML. No abre UI ni persiste categorías. */
 object ModifyDocumentXml {
 
-    private const val MAX_BYTES = 2 * 1024 * 1024
+    const val MAX_BYTES = 2 * 1024 * 1024
+
+    /**
+     * Respuesta "sin cambios". HioPos 15.14.3 marca el resultado como fallido
+     * si no recibe un ModifyDocumentResult parseable ("Result not received" /
+     * "Error parsing result"), así que dejar seguir exige mandar uno vacío.
+     */
+    const val EMPTY_RESULT = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ModifyDocumentResult><Header></Header></ModifyDocumentResult>"
 
     private val builder by lazy {
         val factory = DocumentBuilderFactory.newInstance().apply {

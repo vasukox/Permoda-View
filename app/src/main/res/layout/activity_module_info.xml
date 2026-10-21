@@ -1,132 +1,108 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Ficha del módulo. Es lo que ve quien toca el ícono en la terminal.
-
-    No es una pantalla de error: es informativa y, sobre todo, útil para soporte.
-    El bloque de abajo muestra versión, nombre del módulo y paquete — los tres
-    datos que se piden por teléfono cuando el POS no activa el módulo.
-
-    Sistema navy enterprise, igual que la pantalla del cajero.
+    Ficha del módulo · sistema «Caja». Es lo que ve quien toca el ícono en la
+    terminal: informativa y útil para soporte (versión, módulo, paquete, los tres
+    datos que se piden por teléfono cuando el POS no activa el módulo).
 -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/bg_app"
+    android:background="@color/caja_ground"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:paddingHorizontal="@dimen/module_info_pad_h"
-        android:paddingVertical="40dp">
+        android:orientation="vertical">
 
+        <!-- Banda marina con el rótulo del módulo. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/bg_koaj_card_white"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:padding="32dp">
+            android:background="@color/caja_navy"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/caja_info_pad_h"
+            android:paddingVertical="22dp">
 
             <FrameLayout
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:layout_marginBottom="20dp"
-                android:background="@drawable/bg_info_icon_circle">
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_caja_icon_tile">
 
                 <ImageView
-                    android:layout_width="34dp"
-                    android:layout_height="34dp"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
                     android:layout_gravity="center"
                     android:contentDescription="@string/module_info_title"
                     android:src="@drawable/ic_koaj_store"
-                    android:tint="@color/accent_primary"
+                    android:tint="@color/caja_on_navy"
                     tools:ignore="UseAppTint" />
             </FrameLayout>
 
             <TextView
-                android:layout_width="match_parent"
+                style="@style/CajaBandTitle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:text="@string/module_info_title"
-                android:textColor="@color/text_primary"
-                android:textSize="24sp"
-                android:textStyle="bold" />
+                android:layout_weight="1"
+                android:text="@string/module_info_title" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="@dimen/caja_info_pad_h"
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="40dp"
+            android:background="@drawable/bg_caja_panel"
+            android:orientation="vertical"
+            android:padding="32dp">
 
             <TextView
+                style="@style/CajaBody"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:gravity="center"
-                android:lineSpacingExtra="4dp"
                 android:text="@string/module_info_body"
-                android:textColor="@color/text_secondary"
                 android:textSize="16sp" />
 
-            <View style="@style/Hairline" />
-
             <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:fontFamily="sans-serif-medium"
-                android:gravity="center"
-                android:letterSpacing="0.18"
-                android:text="@string/module_info_support_label"
-                android:textAllCaps="true"
-                android:textColor="@color/accent_secondary"
-                android:textSize="11sp"
-                android:textStyle="bold" />
+                style="@style/CajaFieldLabel"
+                android:layout_marginTop="28dp"
+                android:text="@string/module_info_support_label" />
 
-            <!-- Ficha técnica: versión · módulo · paquete. La puebla
-                 ModuleInfoActivity desde BuildConfig y ApiActions. -->
+            <!-- Ficha técnica: la puebla ModuleInfoActivity desde BuildConfig y ApiActions. -->
             <TextView
                 android:id="@+id/info_support"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:fontFamily="monospace"
-                android:gravity="center"
-                android:lineSpacingExtra="3dp"
-                android:textColor="@color/text_secondary"
+                android:background="@drawable/bg_caja_type_box"
+                android:fontFamily="@font/plex_sans_medium"
+                android:fontFeatureSettings="tnum"
+                android:lineSpacingExtra="5dp"
+                android:padding="16dp"
+                android:textColor="@color/caja_text"
                 android:textIsSelectable="true"
-                android:textSize="13sp"
-                tools:text="Versión 1.0\nMódulo custvalidation\ncom.permoda.facturacion" />
+                android:textSize="15sp"
+                tools:text="Versión 1\nMódulo custvalidation\ncom.permoda.facturacion" />
 
             <Button
                 android:id="@+id/info_close"
+                style="@style/CajaButton.Primary"
                 android:layout_width="match_parent"
-                android:layout_height="56dp"
-                android:layout_marginTop="28dp"
-                android:background="@drawable/bg_koaj_btn_primary_ink"
-                android:fontFamily="sans-serif-medium"
-                android:stateListAnimator="@null"
-                android:text="@string/module_info_close"
-                android:textAllCaps="false"
-                android:textColor="@color/text_on_primary"
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:layout_height="52dp"
+                android:layout_marginTop="32dp"
+                android:text="@string/module_info_close" />
 
-            <!--
-                Driver de QA. Arranca en GONE y sólo se muestra en debug
-                (ModuleInfoActivity lo decide con BuildConfig.DEBUG). En release
-                no aparece y además TestDriverActivity no está exportada.
-            -->
+            <!-- Driver de QA: GONE salvo en debug (ModuleInfoActivity con BuildConfig.DEBUG). -->
             <Button
                 android:id="@+id/info_open_driver"
+                style="@style/CajaButton.Secondary"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
-                android:layout_marginTop="10dp"
-                android:background="@drawable/bg_koaj_btn_outline_ink"
-                android:fontFamily="sans-serif-medium"
-                android:stateListAnimator="@null"
+                android:layout_marginTop="12dp"
                 android:text="@string/module_info_open_driver"
-                android:textAllCaps="false"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp"
                 android:visibility="gone"
                 tools:visibility="visible" />
         </LinearLayout>

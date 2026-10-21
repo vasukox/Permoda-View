@@ -35,6 +35,17 @@ object ApiActions {
         Behaviour.MANAGE_CUSTOMER to true,
         Behaviour.CREATE_UPDATE_CUSTOMER to false
     )
+
+    /**
+     * Validación del cliente al totalizar (TotalizeValidationActivity).
+     * `CanContinue=false` es lo que convierte el RESULT_CANCELED en un bloqueo:
+     * con `true` HioPos 15.14.3 registra "Continue totalization (API behavior
+     * with continue after fail)" y cobra igual.
+     */
+    val TOTALIZE_BEHAVIOUR: Map<String, Boolean> get() = mapOf(
+        Behaviour.CALL_BEFORE_TOTALIZE_SALE to true,
+        Behaviour.CAN_CONTINUE to false
+    )
     const val EXTRA_TOKEN          = "Token"
     const val EXTRA_PARAMETERS     = "Parameters"   // String XML de configuración persistida en CloudLicense.
     const val EXTRA_SHOP           = "Shop"         // String XML con info de la tienda.
@@ -46,7 +57,10 @@ object ApiActions {
     const val EXTRA_IS_INVOICE     = "IsInvoice"
     const val EXTRA_CUSTOMER_MODE  = "CustomerMode" // Solo driver histórico; no es una señal contractual.
     const val EXTRA_DOCUMENT        = "Document"       // String XML del <Document> con <Customer> adentro.
-    const val EXTRA_TRIGGER_EVENT   = "TriggerEvent"   // "CUSTOMER_SELECTION", "MODIFY_DOC", etc.
+    const val EXTRA_TRIGGER_EVENT   = "TriggerEvent"   // "TOTALIZE_SALE", "CUSTOMER_SELECTION", etc.
+    const val EXTRA_DOCUMENT_URI    = "DocumentUri"    // content:// de icg.android.start.provider.
+    const val EXTRA_DOCUMENT_PATH   = "DocumentPath"   // Ruta en Documents/APIExternalTraffic.
+    const val RESULT_MODIFY_DOCUMENT_RESULT = "ModifyDocumentResult" // String XML; 15.14.3 también acepta …Uri/…Path.
     const val RESULT_STATUS        = "STATUS"
     const val RESULT_VERSION       = "Version"
     const val RESULT_CUSTOMER_RESULT = "CustomerResult"

@@ -96,7 +96,7 @@ enum class CustomerScenario {
             // El escenario definitivo (2 o 4) lo decide la DIAN después.
             if (!isTheIncomingCustomer) return CREATE_MANUAL
 
-            return if (CustomerValidator.validate(incoming, rules).isValid) EDIT
+            return if (CustomerValidator.validateForSave(incoming, rules).isValid) EDIT
             else COMPLETE_EXISTING
         }
 

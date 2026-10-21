@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Medidas del sistema «Caja». El margen lateral crece con el ancho para que la
+    ficha no se estire de borde a borde: en la C9H (1920x1080 a 204 dpi =
+    1506x847 dp) entra en values-w1440dp y el cuerpo queda en ~1314 dp
+    (riel de 340 dp + formulario).
+-->
+<resources>
+    <dimen name="caja_page_pad_h">24dp</dimen>
+    <dimen name="caja_column_gap">24dp</dimen>
+    <dimen name="caja_rail_width">260dp</dimen>
+    <dimen name="caja_info_pad_h">32dp</dimen>
+    <!-- Notificaciones flotantes: ancho y distancia al pie de acciones. -->
+    <dimen name="caja_toast_width">460dp</dimen>
+    <dimen name="caja_toast_bottom">88dp</dimen>
+</resources>

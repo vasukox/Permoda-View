@@ -126,23 +126,42 @@
         porque es la única con UI propia dentro de una `AppCompatActivity`
         ([ManageCustomerActivity]). El porqué está en `Theme.PermodaView`.
     -->
+    <!--
+        Sistema «Caja»: el foco, el cursor, la selección y las asas pasan al azul
+        de acción. Solo en esta ventana; la Presentation del cliente sigue con
+        Theme.PermodaView.Display y su dorado.
+    -->
     <style name="Theme.PermodaView.Vendor" parent="Theme.PermodaView">
         <item name="android:windowNoTitle">true</item>
-        <item name="android:windowBackground">@color/bg_app</item>
-        <item name="android:statusBarColor" tools:targetApi="l">@color/text_primary</item>
-        <item name="android:navigationBarColor" tools:targetApi="l">@color/bg_app</item>
+        <item name="android:windowBackground">@color/caja_ground</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/caja_navy</item>
+        <item name="android:navigationBarColor" tools:targetApi="l">@color/caja_navy</item>
+        <item name="colorAccent">@color/caja_primary</item>
+        <item name="colorControlActivated">@color/caja_primary</item>
+        <item name="colorControlHighlight">@color/caja_primary_ripple</item>
+        <item name="android:textColorHighlight">#3D1F55C0</item>
+        <item name="android:textCursorDrawable">@drawable/bg_caja_cursor</item>
+        <item name="android:textSelectHandle">@drawable/bg_caja_select_handle</item>
+        <item name="android:textSelectHandleLeft">@drawable/bg_caja_select_handle</item>
+        <item name="android:textSelectHandleRight">@drawable/bg_caja_select_handle</item>
+    </style>
+
+    <!-- Ficha del módulo: el mismo sistema «Caja», a pantalla completa como antes. -->
+    <style name="Theme.PermodaView.Info" parent="Theme.PermodaView.Vendor">
+        <item name="android:windowFullscreen">true</item>
     </style>
 
     <!-- Etiqueta y campo del espejo del vendedor -->
+    <!-- Placa de rótulo Vitrina: la misma posición y voz en cada campo. -->
+    <!-- Rótulo pequeño y espaciado: identifica sin competir con el dato. -->
     <style name="VendorFieldLabel">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:letterSpacing">0.22</item>
+        <item name="android:fontFamily">@font/barlow_condensed_semibold</item>
+        <item name="android:letterSpacing">0.12</item>
         <item name="android:textAllCaps">true</item>
-        <item name="android:textColor">@color/accent_secondary</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/vitrina_text_muted</item>
+        <item name="android:textSize">12sp</item>
     </style>
 
     <!--
@@ -159,13 +178,84 @@
         <item name="android:paddingTop">8dp</item>
         <item name="android:paddingBottom">8dp</item>
         <item name="android:layout_marginTop">2dp</item>
-        <item name="android:background">@null</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:background">@drawable/bg_vitrina_field</item>
+        <item name="android:fontFamily">sans-serif</item>
         <item name="android:hint">@string/consent_empty_placeholder</item>
         <item name="android:maxLines">1</item>
-        <item name="android:textColor">@color/text_primary</item>
-        <item name="android:textColorHint">@color/text_muted</item>
-        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/vitrina_text</item>
+        <item name="android:textColorHint">@color/vitrina_text_muted</item>
+        <item name="android:textCursorDrawable">@null</item>
+        <item name="android:textSize">19sp</item>
+    </style>
+
+    <!-- ── Vitrina: voz de rótulo y acciones ─────────────────────────── -->
+    <!-- Semibold, no bold: la mayúscula condensada ya da la voz de rótulo. -->
+    <style name="VitrinaHeading">
+        <item name="android:fontFamily">@font/barlow_condensed_semibold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.02</item>
+        <item name="android:textColor">@color/vitrina_text</item>
+        <item name="android:textSize">26sp</item>
+        <item name="android:lineSpacingMultiplier">0.95</item>
+    </style>
+
+    <!-- Cinta de pasos sobre la banda de tinta. Color y cinta los pinta VendorScreen.applySteps. -->
+    <style name="VitrinaStepLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginBottom">7dp</item>
+        <item name="android:fontFamily">@font/barlow_condensed_semibold</item>
+        <item name="android:letterSpacing">0.12</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/vitrina_on_ink_dim</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <!-- 2dp: un hilo, no una franja. -->
+    <style name="VitrinaStepBar">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">2dp</item>
+        <item name="android:background">@color/vitrina_ink_raised</item>
+    </style>
+
+    <!-- Filete de 1dp entre filas de datos (sustituye la tarjeta con sombra). -->
+    <style name="VitrinaRowRule">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:background">@color/vitrina_rule_faint</item>
+    </style>
+
+    <style name="VitrinaButton">
+        <item name="android:fontFamily">@font/barlow_condensed_semibold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.1</item>
+        <item name="android:stateListAnimator">@null</item>
+        <item name="android:minHeight">52dp</item>
+    </style>
+
+    <style name="VitrinaButton.Primary">
+        <item name="android:background">@drawable/bg_vitrina_btn_primary</item>
+        <item name="android:textColor">@color/vitrina_on_ink</item>
+        <item name="android:textSize">17sp</item>
+    </style>
+
+    <style name="VitrinaButton.Outline">
+        <item name="android:background">@drawable/bg_vitrina_btn_outline</item>
+        <item name="android:textColor">@color/vitrina_text_soft</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+    <!-- Rótulo de sección: marca el bloque en voz baja (sustituye títulos de 22sp). -->
+    <style name="VitrinaSectionLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">@font/barlow_condensed_semibold</item>
+        <item name="android:letterSpacing">0.18</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:textColor">@color/vitrina_text_muted</item>
+        <item name="android:textSize">12sp</item>
     </style>
 
     <!-- Hairline divisor entre filas de la tarjeta de datos -->
@@ -226,9 +316,9 @@
     <style name="Hairline">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>
-        <item name="android:layout_marginTop">12dp</item>
-        <item name="android:layout_marginBottom">12dp</item>
-        <item name="android:background">@color/border_hairline</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:layout_marginBottom">16dp</item>
+        <item name="android:background">@android:color/transparent</item>
     </style>
 
 </resources>

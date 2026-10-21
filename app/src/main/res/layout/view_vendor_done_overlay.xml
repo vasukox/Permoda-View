@@ -1,19 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Overlay "flow completado" · XL premium · "Cliente extraído / confirmado".
+    Overlay "flow completado" · sistema «Caja».
 
     Se muestra al final del flujo (DONE) durante el beat antes de devolver
-    el resultado al POS. Es el "le dimos cierre" visual al trabajo del
-    cajero.
-
-    Elementos animados por el [CompletionAnimator] desde VendorScreen.kt:
-      · Check XL 120dp con círculo 140dp que se dibuja alrededor
-      · Halo verde que respira al asentarse
-      · Eyebrow KOAJ + título grande + subtítulo
-      · Confetti: 16 partículas (gold/cream/ink) cayendo y dispersándose
-      · Backdrop con fade in premium
+    el resultado al POS. Las animaciones (CompletionAnimator en VendorScreen.kt)
+    son las mismas de siempre; solo cambian superficie y colores:
+      · Velo gris frío translúcido sobre la pantalla
+      · Tarjeta blanca con sombra, check verde de estado y anillo que se traza
+      · Confeti en la paleta azul (bg_caja_particle_*)
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/vendor_done_overlay"
     android:layout_width="match_parent"
@@ -24,11 +21,6 @@
     android:visibility="gone"
     tools:visibility="visible">
 
-    <!--
-        Card de completion. Mismo sistema premium que el pod (cream +
-        borde gold) pero con un acento verde Koaj en lugar del halo dorado
-        — el verde dice "listo", no "esperando".
-    -->
     <LinearLayout
         android:id="@+id/vendor_done_card"
         android:layout_width="@dimen/done_card_width"
@@ -36,37 +28,30 @@
         android:layout_gravity="center"
         android:background="@drawable/bg_done_card"
         android:clickable="false"
+        android:elevation="16dp"
         android:focusable="false"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:paddingHorizontal="36dp"
+        android:paddingHorizontal="40dp"
         android:paddingVertical="@dimen/done_card_padding_v">
 
-        <!-- Eyebrow KOAJ · POS -->
+        <!-- Marca del módulo (CompletionAnimator la anima por id). -->
         <TextView
             android:id="@+id/vendor_done_eyebrow"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-medium"
-            android:letterSpacing="0.38"
+            android:fontFamily="@font/plex_sans_medium"
+            android:letterSpacing="0.08"
             android:text="@string/vendor_eyebrow"
-            android:textAllCaps="true"
-            android:textColor="@color/koaj_done_primary"
-            android:textSize="@dimen/done_eyebrow_text"
-            android:textStyle="bold" />
+            android:textColor="@color/caja_text_muted"
+            android:textSize="@dimen/done_eyebrow_text" />
 
-        <!--
-            Stage del check XL. Halo verde + círculo 140dp + check 120dp
-            apilados. La animación de dibujado del círculo la maneja
-            CompletionAnimator (clip sobre un drawable circular + ObjectAnimator
-            sobre el path del check).
-        -->
         <FrameLayout
             android:layout_width="@dimen/done_check_size"
             android:layout_height="@dimen/done_check_size"
-            android:layout_marginTop="28dp">
+            android:layout_marginTop="24dp">
 
-            <!-- Halo verde Koaj detrás del check. Respira 1.0 → 1.15 → 1.0 -->
+            <!-- Halo verde detrás del check. Respira 1.0 → 1.18 → 1.0 -->
             <View
                 android:id="@+id/vendor_done_halo"
                 android:layout_width="@dimen/done_ring_size"
@@ -75,7 +60,7 @@
                 android:alpha="0"
                 android:background="@drawable/bg_done_halo" />
 
-            <!-- Anillo verde que se dibuja al entrar (clip reveal) -->
+            <!-- Anillo que se traza al entrar -->
             <View
                 android:id="@+id/vendor_done_ring"
                 android:layout_width="@dimen/done_ring_size"
@@ -83,45 +68,38 @@
                 android:layout_gravity="center"
                 android:background="@drawable/bg_done_ring" />
 
-            <!--
-                Check verde sobre el círculo. El stroke del path se anima
-                con un trim path (0 → 1) en CompletionAnimator.
-            -->
             <ImageView
                 android:id="@+id/vendor_done_check"
-                android:layout_width="76dp"
-                android:layout_height="76dp"
+                android:layout_width="72dp"
+                android:layout_height="72dp"
                 android:layout_gravity="center"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_done_check_path"
-                app:tint="@color/koaj_done_primary"
-                xmlns:app="http://schemas.android.com/apk/res-auto" />
+                app:tint="@color/caja_success" />
         </FrameLayout>
 
-        <!-- Título XL -->
         <TextView
             android:id="@+id/vendor_done_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="28dp"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginTop="24dp"
+            android:fontFamily="@font/plex_sans_semibold"
             android:gravity="center"
+            android:letterSpacing="-0.01"
             android:text="@string/vendor_done_title_accepted"
-            android:textColor="@color/text_primary"
-            android:textSize="@dimen/done_title_text"
-            android:textStyle="bold" />
+            android:textColor="@color/caja_text"
+            android:textSize="@dimen/done_title_text" />
 
-        <!-- Subtítulo -->
         <TextView
             android:id="@+id/vendor_done_subtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:fontFamily="sans-serif-medium"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/plex_sans_regular"
             android:gravity="center"
-            android:lineSpacingExtra="4dp"
+            android:lineSpacingExtra="3dp"
             android:text="@string/vendor_done_subtitle_accepted"
-            android:textColor="@color/text_secondary"
+            android:textColor="@color/caja_text_soft"
             android:textSize="@dimen/done_subtitle_text" />
     </LinearLayout>
 

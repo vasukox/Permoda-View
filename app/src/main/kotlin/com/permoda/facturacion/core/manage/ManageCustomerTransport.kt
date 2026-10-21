@@ -6,10 +6,20 @@ import java.io.InputStream
 object ManageCustomerTransport {
     data class Resource(val scheme: String?, val authority: String?)
 
-    fun read(inline: String?, resource: Resource?, systemCaller: String?, open: () -> InputStream?): String {
+    /**
+     * @param maxBytes el documento de venta de TOTALIZE_SALE trae líneas y es
+     *   más grande que un cliente, por eso el tope es configurable.
+     */
+    fun read(
+        inline: String?,
+        resource: Resource?,
+        systemCaller: String?,
+        maxBytes: Int = ManagedCustomerSession.MAX_BYTES,
+        open: () -> InputStream?
+    ): String {
         require(inline == null || resource == null) { "Se recibió más de una carga de cliente" }
         if (inline != null) {
-            require(inline.toByteArray(Charsets.UTF_8).size <= ManagedCustomerSession.MAX_BYTES) { "XML de cliente demasiado grande" }
+            require(inline.toByteArray(Charsets.UTF_8).size <= maxBytes) { "XML de cliente demasiado grande" }
             return inline
         }
         require(resource != null) { "Falta el XML de cliente en los extras configurados" }
@@ -17,7 +27,7 @@ object ManageCustomerTransport {
             "URI de cliente no autorizada"
         }
         val data = open()?.use { stream ->
-            val buffer = ByteArray(ManagedCustomerSession.MAX_BYTES + 1)
+            val buffer = ByteArray(maxBytes + 1)
             var total = 0
             while (total < buffer.size) {
                 val count = stream.read(buffer, total, buffer.size - total)
@@ -28,7 +38,7 @@ object ManageCustomerTransport {
                     buffer[total++] = single.toByte()
                 } else total += count
             }
-            require(total <= ManagedCustomerSession.MAX_BYTES) { "XML de cliente demasiado grande" }
+            require(total <= maxBytes) { "XML de cliente demasiado grande" }
             buffer.copyOf(total)
         } ?: throw IllegalArgumentException("No se pudo leer el XML de cliente")
         return data.toString(Charsets.UTF_8)

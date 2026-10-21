@@ -225,6 +225,30 @@
     <string name="vendor_prompt_create_doc_title">Este cliente no está registrado. ¿Desea crearlo?</string>
     <string name="vendor_prompt_create_doc_subtitle">Se validará el documento %1$s con la DIAN.</string>
 
+    <!-- Cinta de pasos de la banda del cajero -->
+    <string name="vendor_step_doc">Documento</string>
+    <string name="vendor_step_data">Datos</string>
+    <string name="vendor_step_koaj">Koaj Lovers</string>
+
+    <!-- Sistema «Caja» (pantalla del cajero): rótulos en tipo oración y piezas nuevas. -->
+    <string name="caja_label_name">Nombre y apellido</string>
+    <string name="caja_label_doc_type">Tipo de documento</string>
+    <string name="caja_label_doc_id">Número de documento</string>
+    <string name="caja_label_email">Correo electrónico</string>
+    <string name="caja_label_phone">Teléfono</string>
+    <string name="caja_label_customer_type">Tipo de usuario</string>
+    <string name="caja_label_employee">Este cliente es empleado</string>
+    <string name="caja_step_doc_hint">Tipo y número</string>
+    <string name="caja_step_data_hint">Nombre, correo y teléfono</string>
+    <string name="caja_step_koaj_hint">Decisión del cliente</string>
+    <string name="caja_rail_progress">Progreso</string>
+    <string name="caja_record_placeholder">Cliente sin nombre</string>
+    <string name="caja_record_doc_placeholder">Documento pendiente</string>
+    <string name="caja_sync_status">Sincronizado con la pantalla del cliente</string>
+    <string name="caja_form_title">Datos del cliente</string>
+    <string name="caja_toast_validation_title">Revisa estos datos para continuar</string>
+    <string name="caja_toast_warning_title">Atención</string>
+
     <!-- Botón "Nuevo cliente" del POS: el módulo no puede consultar el maestro -->
     <string name="vendor_prompt_search_title">¿Ya buscaste al cliente con la lupa?</string>
     <string name="vendor_prompt_search_subtitle">Si el cliente ya existe, HioPos no dejará crearlo de nuevo y se perderán los datos que llenes.</string>

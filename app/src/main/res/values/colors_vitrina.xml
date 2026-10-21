@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Sistema «Vitrina Koaj»: rótulos de vinilo de corte en tinta y dorado.
+
+    Tokens propios y nuevos a propósito. La pantalla de Koaj Lovers
+    (`zone_loyalty` en presentation_consent.xml) usa los `koaj_*` de colors.xml
+    y debe quedar intacta, así que este sistema no redefine ninguno de ellos.
+
+    Reglas de uso:
+    · Tinta a sangre para la banda superior y la acción primaria.
+    · Dorado solo para la cinta de pasos, el foco y la marca; nunca como
+      texto sobre blanco (2.4:1).
+    · Blanco de trabajo, hueso para filetes; verde y rojo solo para estados.
+-->
+<resources>
+    <!-- Tinta -->
+    <color name="vitrina_ink">#FF141312</color>
+    <color name="vitrina_ink_raised">#FF2B2926</color>
+    <color name="vitrina_on_ink">#FFFFFFFF</color>
+    <!-- 9.0:1 sobre tinta -->
+    <color name="vitrina_on_ink_soft">#FFBDB7AE</color>
+    <!-- 4.6:1 sobre tinta: pasos pendientes de la cinta -->
+    <color name="vitrina_on_ink_dim">#FF8C867D</color>
+
+    <!-- Dorado -->
+    <color name="vitrina_gold">#FFC9A227</color>
+    <color name="vitrina_gold_pressed">#FFB08D1E</color>
+    <color name="vitrina_gold_pale">#FFF6EBC8</color>
+    <!-- 5.3:1 sobre blanco: el único dorado que puede ser texto sobre blanco -->
+    <color name="vitrina_gold_text">#FF8A6A0B</color>
+
+    <!-- Trabajo -->
+    <color name="vitrina_ground">#FFFFFFFF</color>
+    <color name="vitrina_ground_alt">#FFF4F2EF</color>
+    <color name="vitrina_rule">#FFE8E5E0</color>
+    <color name="vitrina_rule_strong">#FFCFCAC2</color>
+    <!-- Filete casi invisible: separa sin dibujar una rejilla -->
+    <color name="vitrina_rule_faint">#FFF0EEEA</color>
+    <color name="vitrina_text">#FF141312</color>
+    <!-- 7.1:1 sobre blanco -->
+    <color name="vitrina_text_soft">#FF5E5953</color>
+    <!-- 4.9:1 sobre blanco: placeholders -->
+    <color name="vitrina_text_muted">#FF77716A</color>
+    <color name="vitrina_disabled">#FFCFCAC2</color>
+
+    <!-- Estados -->
+    <color name="vitrina_success">#FF1F8A5B</color>
+    <color name="vitrina_success_pale">#FFE3F2EA</color>
+    <!-- 5.0:1 sobre blanco -->
+    <color name="vitrina_error">#FFC8372D</color>
+    <color name="vitrina_error_pale">#FFFBE7E5</color>
+
+    <color name="vitrina_scrim">#B3141312</color>
+</resources>

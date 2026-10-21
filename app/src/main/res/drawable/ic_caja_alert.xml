@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ícono de dato por corregir (círculo con «!»), misma familia que ic_caja_info. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="20dp"
+    android:height="20dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:pathData="M12,3.25a8.75,8.75 0,1 1,0 17.5a8.75,8.75 0,1 1,0 -17.5z"
+        android:strokeWidth="1.75"
+        android:strokeColor="#FFB42318"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M12,7.5L12,12.75"
+        android:strokeWidth="1.75"
+        android:strokeLineCap="round"
+        android:strokeColor="#FFB42318" />
+    <path
+        android:pathData="M12,16.25m-1.1,0a1.1,1.1 0,1 1,2.2 0a1.1,1.1 0,1 1,-2.2 0"
+        android:fillColor="#FFB42318" />
+</vector>

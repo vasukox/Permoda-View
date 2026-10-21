@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Placa del ícono de cada fila del cliente: hueso plano, esquina de vinilo. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <corners android:radius="2dp" />
+    <solid android:color="@color/vitrina_ground_alt" />
+</shape>

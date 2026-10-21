@@ -6,6 +6,7 @@ import com.permoda.facturacion.core.customer.CustomerType
 import com.permoda.facturacion.core.customer.CustomerTypeResolver
 import com.permoda.facturacion.core.hka.TipoDocumentoMapper
 import com.permoda.facturacion.core.model.CustomerData
+import com.permoda.facturacion.core.validation.CustomerSanitizer
 import com.permoda.facturacion.core.validation.CustomerValidator
 import org.w3c.dom.Element
 import java.io.ByteArrayInputStream
@@ -20,11 +21,12 @@ data class CustomerCategoryMapping(val normal: Int, val vip: Int, val employee: 
         require(setOf(normal, vip, employee).size == 3) { "Las categorías deben tener IDs distintos" }
     }
 
-    fun fromRemote(id: Int): CustomerType = when (id) {
+    /** `null` si el ID no es del catálogo (p. ej. 0 = sin tipo asignado en HioPos). */
+    fun fromRemote(id: Int): CustomerType? = when (id) {
         normal -> CustomerType.ESTANDAR
         vip -> CustomerType.VIP
         employee -> CustomerType.EMPLEADO
-        else -> throw IllegalArgumentException("Categoría de cliente no configurada")
+        else -> null
     }
 
     fun toRemote(type: CustomerType): Int = when (type) {
@@ -95,7 +97,9 @@ class ManagedCustomerSession private constructor(
     val parsed: ParsedCustomer,
     private val originalId: String?,
     private val fields: Map<String, String>,
-    private val config: ManageCustomerConfig
+    private val config: ManageCustomerConfig,
+    /** El tipo recibido es del catálogo. Si no, se trata como Estándar sin sobrescribirlo. */
+    private val incomingTypeKnown: Boolean
 ) {
     val shouldQueryHka: Boolean get() = operation == CustomerOperation.CREATE
 
@@ -108,7 +112,9 @@ class ManagedCustomerSession private constructor(
             email = if (same) parsed.data.email else "", phone = if (same) parsed.data.phone else "")
     }
 
-    fun resultXml(customer: CustomerData, loyaltyOptIn: Boolean?): String {
+    fun resultXml(input: CustomerData, loyaltyOptIn: Boolean?): String {
+        // Se guarda limpio: espacios de más e invisibles del maestro se corrigen aquí.
+        val customer = CustomerSanitizer.clean(input)
         require(CustomerValidator.validate(customer).isValid) { "Completa los datos obligatorios del cliente" }
         val category = CustomerTypeResolver.resolve(parsed.data.customerTypeId, null, loyaltyOptIn, false)
         val values = fields.toMutableMap()
@@ -125,7 +131,12 @@ class ManagedCustomerSession private constructor(
         values["phone"] = customer.phone.orEmpty().trim()
         values["countryIso2"] = customer.countryIso2?.takeIf { it.isNotBlank() } ?: "CO"
         // Sin catálogo se conserva el valor recibido (o se omite en un alta sin categoría).
-        config.categories?.let { values["customerTypeId"] = it.toRemote(category).toString() }
+        // Una edición con tipo fuera del catálogo (o sin tipo) conserva lo que traía: solo
+        // aceptar Koaj Lovers lo cambia. Así editar nunca inventa una categoría.
+        config.categories?.let { c ->
+            val keepIncoming = operation == CustomerOperation.EDIT && !incomingTypeKnown && category != CustomerType.VIP
+            if (!keepIncoming) values["customerTypeId"] = c.toRemote(category).toString()
+        }
         // contactTypeId, allowPromos y demás campos originales se preservan, sin
         // confundir naturaleza fiscal o permisos comerciales con la membresía.
         return buildString {
@@ -189,7 +200,7 @@ class ManagedCustomerSession private constructor(
          */
         fun fromPosExtras(extras: Map<String, Any?>, config: ManageCustomerConfig): ManagedCustomerSession {
             val fields = linkedMapOf<String, String>()
-            POS_FIELD_KEYS.forEach { key -> extras[key]?.let { fields[key] = it.toString().trim() } }
+            POS_FIELD_KEYS.forEach { key -> extras[key]?.let { fields[key] = posValue(it) } }
             require(POS_FIELD_KEYS.any(extras::containsKey)) { "Falta el cliente en los extras de ManageCustomer" }
             val operation = if (extras.containsKey("customerName")) CustomerOperation.EDIT else CustomerOperation.CREATE
             return build(fields, operation, null, config)
@@ -198,28 +209,36 @@ class ManagedCustomerSession private constructor(
         private fun build(
             fields: Map<String, String>, operation: CustomerOperation, incomingId: Long?, config: ManageCustomerConfig
         ): ManagedCustomerSession {
-            val remoteType = fields["customerTypeId"]?.takeIf { it.isNotBlank() }?.let {
-                it.toIntOrNull() ?: throw IllegalArgumentException("Categoría de cliente inválida")
-            }
-            val categories = config.categories
-            require(categories == null || operation != CustomerOperation.EDIT || remoteType != null) {
-                "La edición requiere la categoría original del cliente"
-            }
-            val type = categories?.let { c -> remoteType?.let(c::fromRemote) } ?: CustomerType.ESTANDAR
+            // Un cliente sin tipo, con 0 o con un tipo fuera del catálogo se puede editar: se
+            // muestra como Estándar y resultXml conserva el valor original.
+            val remoteType = fields["customerTypeId"]?.trim()?.toIntOrNull()
+            val known = config.categories?.let { c -> remoteType?.let(c::fromRemote) }
+            val type = known ?: CustomerType.ESTANDAR
             val rawDocType = fields["fiscalDocumentType"]
             val docType = when (config.fiscalCodes) {
                 FiscalCodeDomain.HIOPOS -> TipoDocumentoMapper.fromHioPosCode(rawDocType)
                     ?: TipoDocumentoMapper.toFullName(rawDocType?.takeUnless { it.all(Char::isDigit) })
                 FiscalCodeDomain.DIAN -> TipoDocumentoMapper.toFullName(rawDocType)
             }
-            val data = CustomerData(
+            // El formulario abre con los datos ya limpios: el cajero ve cómo quedarán guardados.
+            val data = CustomerSanitizer.clean(CustomerData(
                 customerId = incomingId?.takeIf { it > 0 }?.toString(),
                 customerName = fields["customerName"].orEmpty(),
                 fiscalDocumentType = docType,
                 fiscalId = fields["fiscalId"], email = fields["email"], phone = fields["phone"],
                 countryIso2 = fields["countryIso2"], customerTypeId = type.id
-            )
-            return ManagedCustomerSession(operation, ParsedCustomer(data, ""), data.customerId, fields, config)
+            ))
+            return ManagedCustomerSession(operation, ParsedCustomer(data, ""), data.customerId, fields, config, known != null)
+        }
+
+        /**
+         * HioPos manda `birthDate` como `java.sql.Date` y lo vuelve a leer con `yyyy-MM-dd`.
+         * Se formatea explícitamente para que un `java.util.Date` no viaje como
+         * "Tue Apr 18 00:00:00 GMT-05:00 1990", que el POS no sabe leer.
+         */
+        private fun posValue(value: Any): String = when (value) {
+            is java.util.Date -> java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US).format(value)
+            else -> value.toString().trim()
         }
 
         private fun escape(s: String): String = s.replace("&", "&amp;").replace("<", "&lt;")

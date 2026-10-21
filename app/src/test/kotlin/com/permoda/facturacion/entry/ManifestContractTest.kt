@@ -286,6 +286,16 @@ class ManifestContractTest {
         assertEquals(false, ApiActions.CUSTOMER_BEHAVIOUR["CreateUpdateCustomer"])
     }
 
+    @Test
+    fun `MODIFY_DOCUMENT resuelve a la validacion al totalizar y bloquea`() {
+        // Sin CanContinue=false HioPos cobra aunque el módulo cancele
+        // ("Continue totalization (API behavior with continue after fail)").
+        val dueña = activities().single { ApiActions.MODIFY_DOCUMENT in it.actions }
+        assertTrue(dueña.name.endsWith("TotalizeValidationActivity"))
+        assertEquals(true, ApiActions.TOTALIZE_BEHAVIOUR["CallBeforeTotalizeSale"])
+        assertEquals(false, ApiActions.TOTALIZE_BEHAVIOUR["CanContinue"])
+    }
+
     // ------------------------------------------------------------------
     // Helpers DOM
     // ------------------------------------------------------------------
